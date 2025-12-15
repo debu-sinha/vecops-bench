@@ -1,0 +1,206 @@
+version: '3.8'
+
+# =============================================================================
+# VectorDB-Bench: Standardized Benchmarking Environment
+# =============================================================================
+#
+# IMPORTANT: All images use PINNED versions for reproducibility.
+# Do NOT use :latest tags for benchmarking.
+#
+# Tested on: AWS EC2 c5.2xlarge, Ubuntu 22.04 LTS
+# Last updated: 2024-01
+#
+# Usage:
+#   docker-compose up -d           # Start all databases
+#   docker-compose ps              # Check status
+#   docker-compose logs -f qdrant  # View logs
+#   docker-compose down -v         # Stop and remove volumes
+#
+# =============================================================================
+
+services:
+  # Qdrant - Vector Search Engine (Rust-based)
+  # https://github.com/qdrant/qdrant
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    container_name: vectordb-bench-qdrant
+    ports:
+      - "6333:6333"  # REST API
+      - "6334:6334"  # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Milvus - Distributed Vector Database
+  # https://github.com/milvus-io/milvus
+  # Requires etcd + minio for standalone mode
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.11
+    container_name: vectordb-bench-milvus-etcd
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - milvus_etcd_data:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    restart: unless-stopped
+
+  milvus-minio:
+    image: minio/minio:RELEASE.2024-01-01T16-36-33Z
+    container_name: vectordb-bench-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - milvus_minio_data:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: unless-stopped
+
+  milvus:
+    image: milvusdb/milvus:v2.3.4
+    container_name: vectordb-bench-milvus
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    volumes:
+      - milvus_data:/var/lib/milvus
+    ports:
+      - "19530:19530"  # Milvus port
+      - "9091:9091"    # Metrics
+    depends_on:
+      - milvus-etcd
+      - milvus-minio
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Weaviate - GraphQL-native Vector Search
+  # https://github.com/weaviate/weaviate
+  weaviate:
+    image: semitechnologies/weaviate:1.23.0
+    container_name: vectordb-bench-weaviate
+    ports:
+      - "8080:8080"   # REST API
+      - "50051:50051" # gRPC
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'
+      ENABLE_MODULES: ''
+      CLUSTER_HOSTNAME: 'node1'
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL with pgvector extension
+  # https://github.com/pgvector/pgvector
+  postgres:
+    image: pgvector/pgvector:0.6.0-pg16
+    container_name: vectordb-bench-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: vectordb_bench
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Chroma - Lightweight Embedding Database
+  # https://github.com/chroma-core/chroma
+  chroma:
+    image: chromadb/chroma:0.4.22
+    container_name: vectordb-bench-chroma
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=FALSE
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  qdrant_data:
+  milvus_etcd_data:
+  milvus_minio_data:
+  milvus_data:
+  weaviate_data:
+  postgres_data:
+  chroma_data:
+
+# =============================================================================
+# Version Summary (for reproducibility documentation):
+# =============================================================================
+# qdrant:    v1.7.4
+# milvus:    v2.3.4
+# etcd:      v3.5.11
+# minio:     RELEASE.2024-01-01T16-36-33Z
+# weaviate:  1.23.0
+# pgvector:  0.6.0-pg16
+# chroma:    0.4.22
+# =============================================================================
