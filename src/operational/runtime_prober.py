@@ -13,17 +13,18 @@ Measurements:
 6. Health check status (docker inspect)
 """
 
-import subprocess
 import json
 import re
+import subprocess
+import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
-import time
 
 
 @dataclass
 class RuntimeMetrics:
     """Metrics measured at runtime from running containers."""
+
     database: str
     container_name: str
 
@@ -86,7 +87,7 @@ class RuntimeMetrics:
             "metadata": {
                 "measured_at": self.measured_at,
                 "measurement_duration_ms": self.measurement_duration_ms,
-            }
+            },
         }
 
 
@@ -108,7 +109,7 @@ class RuntimeComplexityProber:
                 ["docker", "version", "--format", "{{.Server.Version}}"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             if result.returncode != 0:
                 raise RuntimeError("Docker not available or not running")
@@ -117,12 +118,7 @@ class RuntimeComplexityProber:
 
     def _run_docker_cmd(self, args: List[str], timeout: int = 30) -> str:
         """Run a docker command and return stdout."""
-        result = subprocess.run(
-            ["docker"] + args,
-            capture_output=True,
-            text=True,
-            timeout=timeout
-        )
+        result = subprocess.run(["docker"] + args, capture_output=True, text=True, timeout=timeout)
         if result.returncode != 0:
             raise RuntimeError(f"Docker command failed: {result.stderr}")
         return result.stdout.strip()
@@ -134,20 +130,14 @@ class RuntimeComplexityProber:
         Uses: docker images --format and docker history
         """
         # Get image size
-        output = self._run_docker_cmd([
-            "images", image_name,
-            "--format", "{{.Size}}"
-        ])
+        output = self._run_docker_cmd(["images", image_name, "--format", "{{.Size}}"])
 
         # Parse size (e.g., "1.23GB", "456MB")
         size_mb = self._parse_size_to_mb(output)
 
         # Get layer count
-        history = self._run_docker_cmd([
-            "history", image_name,
-            "--format", "{{.ID}}", "--no-trunc"
-        ])
-        layer_count = len([l for l in history.split('\n') if l.strip()])
+        history = self._run_docker_cmd(["history", image_name, "--format", "{{.ID}}", "--no-trunc"])
+        layer_count = len([line for line in history.split("\n") if line.strip()])
 
         return size_mb, layer_count
 
@@ -155,18 +145,18 @@ class RuntimeComplexityProber:
         """Parse Docker size string to MB."""
         size_str = size_str.strip().upper()
 
-        match = re.match(r'([\d.]+)\s*(GB|MB|KB|B)', size_str)
+        match = re.match(r"([\d.]+)\s*(GB|MB|KB|B)", size_str)
         if not match:
             return 0.0
 
         value = float(match.group(1))
         unit = match.group(2)
 
-        if unit == 'GB':
+        if unit == "GB":
             return value * 1024
-        elif unit == 'MB':
+        elif unit == "MB":
             return value
-        elif unit == 'KB':
+        elif unit == "KB":
             return value / 1024
         else:  # B
             return value / (1024 * 1024)
@@ -177,22 +167,27 @@ class RuntimeComplexityProber:
 
         Uses: docker stats --no-stream
         """
-        output = self._run_docker_cmd([
-            "stats", container_name, "--no-stream",
-            "--format", "{{.MemUsage}}|{{.MemPerc}}|{{.CPUPerc}}"
-        ])
+        output = self._run_docker_cmd(
+            [
+                "stats",
+                container_name,
+                "--no-stream",
+                "--format",
+                "{{.MemUsage}}|{{.MemPerc}}|{{.CPUPerc}}",
+            ]
+        )
 
-        parts = output.split('|')
+        parts = output.split("|")
         if len(parts) != 3:
             return {"memory_usage_mb": 0, "memory_limit_mb": 0, "cpu_percent": 0}
 
         # Parse memory usage (e.g., "1.5GiB / 16GiB")
-        mem_parts = parts[0].split('/')
+        mem_parts = parts[0].split("/")
         mem_usage = self._parse_size_to_mb(mem_parts[0].strip()) if len(mem_parts) > 0 else 0
         mem_limit = self._parse_size_to_mb(mem_parts[1].strip()) if len(mem_parts) > 1 else 0
 
         # Parse CPU percentage (e.g., "25.5%")
-        cpu_str = parts[2].strip().rstrip('%')
+        cpu_str = parts[2].strip().rstrip("%")
         cpu_percent = float(cpu_str) if cpu_str else 0.0
 
         return {
@@ -227,7 +222,7 @@ class RuntimeComplexityProber:
         exposed_ports = []
         ports_config = config.get("ExposedPorts", {})
         for port_spec in ports_config.keys():
-            port_num = int(port_spec.split('/')[0])
+            port_num = int(port_spec.split("/")[0])
             exposed_ports.append(port_num)
 
         # Count volumes
@@ -272,8 +267,9 @@ class RuntimeComplexityProber:
         try:
             # Parse ISO format (e.g., "2024-01-15T10:30:00.123456789Z")
             from datetime import datetime
-            started_at = started_at.split('.')[0] + 'Z'  # Remove nanoseconds
-            start_time = datetime.fromisoformat(started_at.replace('Z', '+00:00'))
+
+            started_at = started_at.split(".")[0] + "Z"  # Remove nanoseconds
+            start_time = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
             now = datetime.now(start_time.tzinfo)
             return (now - start_time).total_seconds()
         except Exception:
@@ -334,7 +330,9 @@ class RuntimeComplexityProber:
             try:
                 metrics = self.probe_container(container_name, db)
                 results[db] = metrics
-                print(f"  [OK] {db}: {metrics.image_size_mb:.1f}MB, {metrics.env_var_count} env vars")
+                print(
+                    f"  [OK] {db}: {metrics.image_size_mb:.1f}MB, {metrics.env_var_count} env vars"
+                )
             except Exception as e:
                 print(f"  [SKIP] {db}: {e}")
 
@@ -381,11 +379,11 @@ def compute_runtime_complexity_score(metrics: RuntimeMetrics) -> Dict[str, Any]:
 
     # Overall weighted score
     overall = (
-        deployment_score * 0.25 +
-        config_score * 0.20 +
-        resource_score * 0.20 +
-        dependency_score * 0.25 +
-        health_score * 0.10
+        deployment_score * 0.25
+        + config_score * 0.20
+        + resource_score * 0.20
+        + dependency_score * 0.25
+        + health_score * 0.10
     )
 
     return {
@@ -434,4 +432,6 @@ if __name__ == "__main__":
         print(f"\n{db.upper()}:")
         print(f"  Overall: {score['overall_score']}/100")
         print(f"  Breakdown: {score['measured_scores']}")
-        print(f"  Raw: image={metrics.image_size_mb:.0f}MB, env={metrics.env_var_count}, mem={metrics.memory_usage_mb:.0f}MB")
+        print(
+            f"  Raw: image={metrics.image_size_mb:.0f}MB, env={metrics.env_var_count}, mem={metrics.memory_usage_mb:.0f}MB"
+        )

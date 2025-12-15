@@ -7,12 +7,12 @@ Explains WHY certain databases are faster/slower for specific operations.
 
 import cProfile
 import io
+import json
 import pstats
 import re
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
-import json
 
 
 def validate_identifier(name: str) -> str:

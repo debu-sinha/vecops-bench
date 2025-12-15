@@ -41,29 +41,25 @@ except ImportError:
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from src.analysis import capture_generic_timing, capture_pgvector_query_plan
 from src.databases import get_adapter
+from src.operational import RuntimeComplexityProber, compute_runtime_complexity_score
 from src.resilience import (
     measure_cold_start,
     measure_crash_recovery,
-    run_memory_constrained_benchmark,
     measure_ingestion_speed,
+    run_memory_constrained_benchmark,
 )
 from src.resilience.ingestion_speed import (
-    vector_batch_generator,
     optimal_batch_size_for_db,
+    vector_batch_generator,
 )
 from src.stats import (
-    compute_stats_for_trials,
     aggregate_trial_results,
     compare_databases,
+    compute_stats_for_trials,
     generate_latex_table,
 )
-from src.analysis import capture_pgvector_query_plan, capture_generic_timing
-from src.operational import (
-    RuntimeComplexityProber,
-    compute_runtime_complexity_score,
-)
-
 
 # =============================================================================
 # Configuration
@@ -71,7 +67,7 @@ from src.operational import (
 
 PHASE_CONFIG = {
     "validation": {
-        "scale": 1_000_000,      # 1M vectors
+        "scale": 1_000_000,  # 1M vectors
         "num_queries": 1000,
         "trials": 3,
         "qps_duration": 30,
@@ -79,7 +75,7 @@ PHASE_CONFIG = {
         "crash_recovery_trials": 3,
     },
     "production": {
-        "scale": 100_000_000,    # 100M vectors
+        "scale": 100_000_000,  # 100M vectors
         "num_queries": 5000,
         "trials": 5,
         "qps_duration": 60,
@@ -87,13 +83,13 @@ PHASE_CONFIG = {
         "crash_recovery_trials": 5,
     },
     "quick": {
-        "scale": 100_000,        # 100K for testing
+        "scale": 100_000,  # 100K for testing
         "num_queries": 100,
         "trials": 2,
         "qps_duration": 10,
         "cold_start_trials": 3,
         "crash_recovery_trials": 2,
-    }
+    },
 }
 
 DATABASES = ["faiss", "elasticsearch", "milvus", "qdrant", "pgvector", "chroma", "weaviate"]
@@ -104,6 +100,7 @@ DIMENSIONS = 768  # all-mpnet-base-v2
 # System Checks (Prevent Invalid Experiments)
 # =============================================================================
 
+
 def verify_scale_validity(num_vectors: int, dimensions: int) -> bool:
     """
     Verify dataset is large enough for valid production claims.
@@ -112,8 +109,8 @@ def verify_scale_validity(num_vectors: int, dimensions: int) -> bool:
     """
     import psutil
 
-    data_size_gb = (num_vectors * dimensions * 4) / (1024 ** 3)
-    available_ram_gb = psutil.virtual_memory().available / (1024 ** 3)
+    data_size_gb = (num_vectors * dimensions * 4) / (1024**3)
+    available_ram_gb = psutil.virtual_memory().available / (1024**3)
 
     print(f"Dataset size: {data_size_gb:.1f} GB")
     print(f"Available RAM: {available_ram_gb:.1f} GB")
@@ -132,10 +129,9 @@ def verify_scale_validity(num_vectors: int, dimensions: int) -> bool:
 def check_docker_running(db_name: str) -> bool:
     """Check if database container is running."""
     import subprocess
+
     result = subprocess.run(
-        ["docker", "ps", "-q", "-f", f"name={db_name}"],
-        capture_output=True,
-        text=True
+        ["docker", "ps", "-q", "-f", f"name={db_name}"], capture_output=True, text=True
     )
     return bool(result.stdout.strip())
 
@@ -144,10 +140,9 @@ def check_docker_running(db_name: str) -> bool:
 # Ground Truth Computation
 # =============================================================================
 
+
 def compute_ground_truth_brute_force(
-    all_vectors: np.ndarray,
-    query_vectors: np.ndarray,
-    top_k: int = 100
+    all_vectors: np.ndarray, query_vectors: np.ndarray, top_k: int = 100
 ) -> List[List[int]]:
     """
     Compute exact nearest neighbors using brute force search.
@@ -168,19 +163,15 @@ def compute_ground_truth_brute_force(
 
     # Create exact search index (Inner Product = Cosine for normalized vectors)
     index = faiss.IndexFlatIP(all_vectors.shape[1])
-    index.add(all_vectors.astype('float32'))
+    index.add(all_vectors.astype("float32"))
 
     # Search
-    _, indices = index.search(query_vectors.astype('float32'), top_k)
+    _, indices = index.search(query_vectors.astype("float32"), top_k)
 
     return [list(row) for row in indices]
 
 
-def compute_recall_at_k(
-    retrieved_ids: List[str],
-    ground_truth_ids: List[str],
-    k: int
-) -> float:
+def compute_recall_at_k(retrieved_ids: List[str], ground_truth_ids: List[str], k: int) -> float:
     """
     Compute Recall@K.
 
@@ -199,12 +190,9 @@ def compute_recall_at_k(
 # Benchmark Functions
 # =============================================================================
 
+
 def run_ingestion_benchmark(
-    adapter,
-    collection_name: str,
-    num_vectors: int,
-    dimensions: int,
-    sample_size: int = 100000
+    adapter, collection_name: str, num_vectors: int, dimensions: int, sample_size: int = 100000
 ) -> tuple:
     """
     Run ingestion benchmark with streaming.
@@ -225,8 +213,10 @@ def run_ingestion_benchmark(
     samples_per_batch = max(1, sample_size // (num_vectors // batch_size + 1))
 
     # Custom ingestion with sampling
-    import psutil
     import time as time_module
+
+    import psutil
+
     process = psutil.Process()
     mem_before = process.memory_info().rss
 
@@ -248,17 +238,14 @@ def run_ingestion_benchmark(
             sample_idx = rng.choice(
                 len(vectors),
                 size=min(samples_per_batch, len(vectors), sample_size - len(sample_vectors)),
-                replace=False
+                replace=False,
             )
             for idx in sample_idx:
                 sample_vectors.append(vectors[idx])
                 sample_ids.append(ids[idx])
 
         # Generate metadata with categories (uniform distribution)
-        metadata = [
-            {"category": CATEGORIES[i % len(CATEGORIES)]}
-            for i in range(len(ids))
-        ]
+        metadata = [{"category": CATEGORIES[i % len(CATEGORIES)]} for i in range(len(ids))]
 
         batch_start = time_module.perf_counter()
         adapter.insert_vectors(collection_name, ids, vectors, metadata=metadata)
@@ -273,8 +260,8 @@ def run_ingestion_benchmark(
             print(f"    Progress: {progress:.1f}% | Rate: {current_rate:.0f} vec/s")
 
     # Finalize index for databases that need it (e.g., Elasticsearch)
-    if hasattr(adapter, 'finalize_index'):
-        print(f"    Finalizing index...")
+    if hasattr(adapter, "finalize_index"):
+        print("    Finalizing index...")
         finalize_time = adapter.finalize_index(collection_name)
         total_time += finalize_time
         print(f"    Finalize time: {finalize_time:.1f}s")
@@ -294,7 +281,7 @@ def run_ingestion_benchmark(
         "batch_size": batch_size,
         "time_to_100m_estimate_hours": time_to_100m,
         "memory_delta_mb": (mem_after - mem_before) / (1024 * 1024),
-        "index_size_bytes": stats.index_size_bytes
+        "index_size_bytes": stats.index_size_bytes,
     }
 
     print(f"    Rate: {vectors_per_second:,.0f} vectors/sec")
@@ -311,7 +298,7 @@ def run_query_benchmark(
     dimensions: int,
     sample_vectors: np.ndarray,
     sample_ids: List[str],
-    top_k_values: List[int] = [1, 10, 100]
+    top_k_values: List[int] = [1, 10, 100],
 ) -> Dict[str, Any]:
     """
     Run query benchmark with proper recall computation.
@@ -338,8 +325,8 @@ def run_query_benchmark(
     # Build brute-force index on sample vectors
     if faiss is not None:
         gt_index = faiss.IndexFlatIP(dimensions)
-        gt_index.add(sample_vectors.astype('float32'))
-        _, gt_indices = gt_index.search(query_vectors.astype('float32'), max_k)
+        gt_index.add(sample_vectors.astype("float32"))
+        _, gt_indices = gt_index.search(query_vectors.astype("float32"), max_k)
         ground_truth = [[sample_ids[idx] for idx in row if idx >= 0] for row in gt_indices]
     else:
         # Fallback: compute manually (slower)
@@ -351,7 +338,7 @@ def run_query_benchmark(
             top_indices = np.argsort(similarities)[::-1][:max_k]
             ground_truth.append([sample_ids[idx] for idx in top_indices])
 
-    print(f"    Ground truth computed. Running ANN queries...")
+    print("    Ground truth computed. Running ANN queries...")
 
     # Run ANN queries and compute recall
     latencies = []
@@ -403,10 +390,7 @@ def run_query_benchmark(
 
 
 def run_warmup(
-    adapter,
-    collection_name: str,
-    dimensions: int,
-    num_warmup_queries: int = 100
+    adapter, collection_name: str, dimensions: int, num_warmup_queries: int = 100
 ) -> None:
     """
     Run warmup queries to populate caches before benchmarking.
@@ -431,7 +415,7 @@ def run_qps_benchmark(
     collection_name: str,
     dimensions: int,
     duration_seconds: float = 30.0,
-    include_warmup: bool = True
+    include_warmup: bool = True,
 ) -> Dict[str, Any]:
     """Run sustained QPS benchmark with warmup."""
     # Warmup phase
@@ -448,10 +432,7 @@ def run_qps_benchmark(
         query_pool.append((q / np.linalg.norm(q)).tolist())
 
     qps, latencies = adapter.benchmark_qps(
-        collection_name,
-        query_pool,
-        top_k=10,
-        duration_seconds=duration_seconds
+        collection_name, query_pool, top_k=10, duration_seconds=duration_seconds
     )
 
     latencies_np = np.array(latencies)
@@ -470,7 +451,7 @@ def run_qps_benchmark(
             "p50": float(np.percentile(latencies_np, 50)),
             "p95": float(np.percentile(latencies_np, 95)),
             "p99": float(np.percentile(latencies_np, 99)),
-        }
+        },
     }
 
 
@@ -479,15 +460,15 @@ def run_concurrent_qps_benchmark(
     collection_name: str,
     dimensions: int,
     num_threads: int = 4,
-    duration_seconds: float = 30.0
+    duration_seconds: float = 30.0,
 ) -> Dict[str, Any]:
     """
     Run concurrent QPS benchmark simulating production load.
 
     Uses ThreadPoolExecutor to send concurrent queries.
     """
-    from concurrent.futures import ThreadPoolExecutor, as_completed
     import threading
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
     print(f"  Running concurrent QPS benchmark ({num_threads} threads)...")
 
@@ -553,7 +534,7 @@ def run_concurrent_qps_benchmark(
             "p50": float(np.percentile(latencies_np, 50)),
             "p95": float(np.percentile(latencies_np, 95)),
             "p99": float(np.percentile(latencies_np, 99)),
-        }
+        },
     }
 
 
@@ -562,14 +543,14 @@ def run_filtered_search_benchmark(
     collection_name: str,
     dimensions: int,
     num_queries: int = 100,
-    selectivities: List[float] = [0.01, 0.1, 0.5]
+    selectivities: List[float] = [0.01, 0.1, 0.5],
 ) -> Dict[str, Any]:
     """
     Run filtered search benchmark at multiple selectivities.
 
     Measures overhead for each selectivity level.
     """
-    print(f"  Running filtered search benchmark...")
+    print("  Running filtered search benchmark...")
 
     rng = np.random.default_rng(42)
     results = {"no_filter": [], "selectivities": {}}
@@ -603,7 +584,7 @@ def run_filtered_search_benchmark(
             except Exception:
                 latencies.append(None)
 
-        valid_latencies = [l for l in latencies if l is not None]
+        valid_latencies = [lat for lat in latencies if lat is not None]
 
         if valid_latencies:
             filtered_mean = np.mean(valid_latencies)
@@ -627,14 +608,10 @@ def run_filtered_search_benchmark(
 
 
 def run_resilience_tests(
-    adapter,
-    db_name: str,
-    collection_name: str,
-    dimensions: int,
-    config: Dict[str, Any]
+    adapter, db_name: str, collection_name: str, dimensions: int, config: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Run all resilience tests (cold start, crash recovery)."""
-    print(f"  Running resilience tests...")
+    print("  Running resilience tests...")
 
     # Sample query for tests
     rng = np.random.default_rng(42)
@@ -651,7 +628,7 @@ def run_resilience_tests(
             adapter=adapter,
             collection_name=collection_name,
             query_vector=query,
-            num_trials=config["cold_start_trials"]
+            num_trials=config["cold_start_trials"],
         )
         results["cold_start"] = cold_start.to_dict()
         print(f"      Mean: {cold_start.mean_ms:.1f}ms")
@@ -668,7 +645,7 @@ def run_resilience_tests(
             collection_name=collection_name,
             query_vector=query,
             expected_vector_count=stats.num_vectors,
-            num_trials=config["crash_recovery_trials"]
+            num_trials=config["crash_recovery_trials"],
         )
         results["crash_recovery"] = crash_recovery.to_dict()
         print(f"      Mean: {crash_recovery.mean_ms:.1f}ms")
@@ -682,12 +659,13 @@ def run_resilience_tests(
 # Main Runner
 # =============================================================================
 
+
 def run_full_benchmark(
     db_name: str,
     db_config: Dict[str, Any],
     phase_config: Dict[str, Any],
     output_dir: Path,
-    skip_ingestion: bool = False
+    skip_ingestion: bool = False,
 ) -> Dict[str, Any]:
     """Run complete benchmark suite for a single database."""
     collection_name = f"bench_v2_{db_name}"
@@ -717,9 +695,11 @@ def run_full_benchmark(
         # Ingestion
         if not skip_ingestion:
             ingestion_result, sample_vectors, sample_ids = run_ingestion_benchmark(
-                adapter, collection_name,
-                phase_config["scale"], DIMENSIONS,
-                sample_size=min(100000, phase_config["scale"])  # Cap sample size
+                adapter,
+                collection_name,
+                phase_config["scale"],
+                DIMENSIONS,
+                sample_size=min(100000, phase_config["scale"]),  # Cap sample size
             )
             results["ingestion"] = ingestion_result
             gc.collect()  # Free memory after ingestion
@@ -735,23 +715,26 @@ def run_full_benchmark(
 
         # Query benchmark (with recall computation)
         results["queries"] = run_query_benchmark(
-            adapter, collection_name,
-            phase_config["num_queries"], DIMENSIONS,
-            sample_vectors, sample_ids
+            adapter,
+            collection_name,
+            phase_config["num_queries"],
+            DIMENSIONS,
+            sample_vectors,
+            sample_ids,
         )
 
         # QPS benchmark (sequential, with warmup)
         results["qps"] = run_qps_benchmark(
-            adapter, collection_name, DIMENSIONS,
-            phase_config["qps_duration"],
-            include_warmup=True
+            adapter, collection_name, DIMENSIONS, phase_config["qps_duration"], include_warmup=True
         )
 
         # Concurrent QPS benchmark (production simulation)
         results["concurrent_qps"] = run_concurrent_qps_benchmark(
-            adapter, collection_name, DIMENSIONS,
+            adapter,
+            collection_name,
+            DIMENSIONS,
             num_threads=4,
-            duration_seconds=phase_config["qps_duration"]
+            duration_seconds=phase_config["qps_duration"],
         )
 
         # Filtered search
@@ -769,15 +752,14 @@ def run_full_benchmark(
             print("  Capturing query plans...")
             try:
                 import psycopg2
+
                 conn = psycopg2.connect(**db_config)
                 cursor = conn.cursor()
 
                 query = np.random.default_rng(42).random(DIMENSIONS, dtype=np.float32)
                 query = (query / np.linalg.norm(query)).tolist()
 
-                plan = capture_pgvector_query_plan(
-                    cursor, query, collection_name, filter_value="A"
-                )
+                plan = capture_pgvector_query_plan(cursor, query, collection_name, filter_value="A")
                 results["query_plan"] = plan.to_dict()
                 cursor.close()
                 conn.close()
@@ -798,7 +780,7 @@ def run_full_benchmark(
             # Container may not be running (e.g., embedded faiss)
             results["operational_complexity"] = {
                 "error": str(e),
-                "note": "Runtime measurement failed - container may not be running"
+                "note": "Runtime measurement failed - container may not be running",
             }
             print(f"    Complexity measurement skipped: {e}")
 
@@ -806,6 +788,7 @@ def run_full_benchmark(
 
     except Exception as e:
         import traceback
+
         results["status"] = "error"
         results["error"] = str(e)
         results["traceback"] = traceback.format_exc()
@@ -821,7 +804,7 @@ def run_full_benchmark(
 
     # Save individual result
     result_file = output_dir / f"{db_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    with open(result_file, 'w') as f:
+    with open(result_file, "w") as f:
         json.dump(results, f, indent=2)
     print(f"  Saved: {result_file}")
 
@@ -836,41 +819,20 @@ def main():
         "--phase",
         choices=["quick", "validation", "production"],
         default="quick",
-        help="Benchmark phase (determines scale)"
+        help="Benchmark phase (determines scale)",
     )
     parser.add_argument(
-        "--database",
-        nargs="+",
-        default=DATABASES,
-        help="Specific databases to benchmark"
+        "--database", nargs="+", default=DATABASES, help="Specific databases to benchmark"
     )
+    parser.add_argument("--scale", type=int, help="Override vector count")
     parser.add_argument(
-        "--scale",
-        type=int,
-        help="Override vector count"
+        "--config", type=str, default="experiments/config_v2.yaml", help="Config file path"
     )
+    parser.add_argument("--output", type=str, default="./results_v2", help="Output directory")
     parser.add_argument(
-        "--config",
-        type=str,
-        default="experiments/config_v2.yaml",
-        help="Config file path"
+        "--skip-ingestion", action="store_true", help="Skip data ingestion (use existing index)"
     )
-    parser.add_argument(
-        "--output",
-        type=str,
-        default="./results_v2",
-        help="Output directory"
-    )
-    parser.add_argument(
-        "--skip-ingestion",
-        action="store_true",
-        help="Skip data ingestion (use existing index)"
-    )
-    parser.add_argument(
-        "--skip-scale-check",
-        action="store_true",
-        help="Skip scale validity check"
-    )
+    parser.add_argument("--skip-scale-check", action="store_true", help="Skip scale validity check")
 
     args = parser.parse_args()
 
@@ -883,7 +845,7 @@ def main():
     output_dir = Path(args.output) / args.phase
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"\nVectorDB-Bench v2.0")
+    print("\nVecOps-Bench v2.0")
     print(f"Phase: {args.phase}")
     print(f"Scale: {phase_config['scale']:,} vectors")
     print(f"Databases: {args.database}")
@@ -917,8 +879,7 @@ def main():
         db_config = db_configs.get(db_name, {}).get("config", {})
 
         result = run_full_benchmark(
-            db_name, db_config, phase_config, output_dir,
-            skip_ingestion=args.skip_ingestion
+            db_name, db_config, phase_config, output_dir, skip_ingestion=args.skip_ingestion
         )
         all_results.append(result)
 
@@ -926,7 +887,7 @@ def main():
 
     # Save combined results
     combined_file = output_dir / f"combined_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    with open(combined_file, 'w') as f:
+    with open(combined_file, "w") as f:
         json.dump(all_results, f, indent=2)
 
     # Print summary

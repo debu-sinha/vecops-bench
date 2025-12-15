@@ -10,6 +10,7 @@ Provides proper statistical rigor for benchmark results:
 
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
 from scipy import stats
 
@@ -17,6 +18,7 @@ from scipy import stats
 @dataclass
 class StatisticalResult:
     """Result of statistical analysis."""
+
     metric: str
     mean: float
     std: float
@@ -30,13 +32,14 @@ class StatisticalResult:
             "mean": self.mean,
             "std": self.std,
             "ci_95": [self.ci_lower, self.ci_upper],
-            "n": self.n
+            "n": self.n,
         }
 
 
 @dataclass
 class ComparisonResult:
     """Result of pairwise comparison."""
+
     metric: str
     db_a: str
     db_b: str
@@ -62,13 +65,12 @@ class ComparisonResult:
             "p_value": self.p_value,
             "cohens_d": self.cohens_d,
             "significant": self.significant,
-            "interpretation": self.interpretation
+            "interpretation": self.interpretation,
         }
 
 
 def compute_confidence_interval(
-    data: List[float],
-    confidence: float = 0.95
+    data: List[float], confidence: float = 0.95
 ) -> Tuple[float, float, float, float]:
     """
     Compute confidence interval for data.
@@ -92,20 +94,13 @@ def compute_confidence_interval(
 
 
 def compute_stats_for_trials(
-    trials: List[float],
-    metric_name: str,
-    confidence: float = 0.95
+    trials: List[float], metric_name: str, confidence: float = 0.95
 ) -> StatisticalResult:
     """Compute statistics for a set of trial measurements."""
     mean, std, ci_lower, ci_upper = compute_confidence_interval(trials, confidence)
 
     return StatisticalResult(
-        metric=metric_name,
-        mean=mean,
-        std=std,
-        ci_lower=ci_lower,
-        ci_upper=ci_upper,
-        n=len(trials)
+        metric=metric_name, mean=mean, std=std, ci_lower=ci_lower, ci_upper=ci_upper, n=len(trials)
     )
 
 
@@ -135,9 +130,7 @@ def check_normality(data: List[float], alpha: float = 0.05) -> Tuple[bool, float
 
 
 def two_sample_ttest(
-    data_a: List[float],
-    data_b: List[float],
-    equal_var: bool = False
+    data_a: List[float], data_b: List[float], equal_var: bool = False
 ) -> Tuple[float, float]:
     """
     Perform Welch's t-test (unequal variance by default).
@@ -149,10 +142,7 @@ def two_sample_ttest(
     return float(t_stat), float(p_val)
 
 
-def mann_whitney_u(
-    data_a: List[float],
-    data_b: List[float]
-) -> Tuple[float, float]:
+def mann_whitney_u(data_a: List[float], data_b: List[float]) -> Tuple[float, float]:
     """
     Perform Mann-Whitney U test (non-parametric alternative to t-test).
 
@@ -161,7 +151,7 @@ def mann_whitney_u(
     Returns:
         Tuple of (u_statistic, p_value)
     """
-    u_stat, p_val = stats.mannwhitneyu(data_a, data_b, alternative='two-sided')
+    u_stat, p_val = stats.mannwhitneyu(data_a, data_b, alternative="two-sided")
     return float(u_stat), float(p_val)
 
 
@@ -206,7 +196,7 @@ def compare_databases(
     db_a_data: List[float],
     db_b_name: str,
     db_b_data: List[float],
-    alpha: float = 0.05
+    alpha: float = 0.05,
 ) -> ComparisonResult:
     """
     Compare two databases on a metric with full statistical analysis.
@@ -268,14 +258,11 @@ def compare_databases(
         p_value=p_val,
         cohens_d=d,
         significant=significant,
-        interpretation=interpretation
+        interpretation=interpretation,
     )
 
 
-def anova_multiple_databases(
-    metric_name: str,
-    db_data: Dict[str, List[float]]
-) -> Dict[str, Any]:
+def anova_multiple_databases(metric_name: str, db_data: Dict[str, List[float]]) -> Dict[str, Any]:
     """
     One-way ANOVA for comparing multiple databases.
 
@@ -304,10 +291,8 @@ def anova_multiple_databases(
     if p_val < 0.05:
         pairwise = []
         for i, (name_a, data_a) in enumerate(db_data.items()):
-            for name_b, data_b in list(db_data.items())[i+1:]:
-                comparison = compare_databases(
-                    metric_name, name_a, data_a, name_b, data_b
-                )
+            for name_b, data_b in list(db_data.items())[i + 1 :]:
+                comparison = compare_databases(metric_name, name_a, data_a, name_b, data_b)
                 pairwise.append(comparison.to_dict())
 
         result["pairwise_comparisons"] = pairwise
@@ -321,8 +306,7 @@ def anova_multiple_databases(
 
 
 def aggregate_trial_results(
-    all_results: List[Dict[str, Any]],
-    metrics: List[str] = ["qps", "latency_p50", "recall_at_10"]
+    all_results: List[Dict[str, Any]], metrics: List[str] = ["qps", "latency_p50", "recall_at_10"]
 ) -> Dict[str, Dict[str, StatisticalResult]]:
     """
     Aggregate results across multiple trials into statistical summaries.
@@ -374,10 +358,7 @@ def _extract_metric(result: Dict, metric: str) -> Optional[float]:
     return float(value) if isinstance(value, (int, float)) else None
 
 
-def format_result_with_ci(
-    stat: StatisticalResult,
-    precision: int = 2
-) -> str:
+def format_result_with_ci(stat: StatisticalResult, precision: int = 2) -> str:
     """Format a statistical result as 'mean ± CI' string."""
     margin = (stat.ci_upper - stat.ci_lower) / 2
     return f"{stat.mean:.{precision}f} ± {margin:.{precision}f}"
@@ -386,7 +367,7 @@ def format_result_with_ci(
 def generate_latex_table(
     aggregated: Dict[str, Dict[str, StatisticalResult]],
     metrics: List[str],
-    caption: str = "Benchmark Results"
+    caption: str = "Benchmark Results",
 ) -> str:
     """Generate LaTeX table with statistical results."""
     lines = [
@@ -408,10 +389,6 @@ def generate_latex_table(
                 row.append("--")
         lines.append(" & ".join(row) + " \\\\")
 
-    lines.extend([
-        "\\bottomrule",
-        "\\end{tabular}",
-        "\\end{table}"
-    ])
+    lines.extend(["\\bottomrule", "\\end{tabular}", "\\end{table}"])
 
     return "\n".join(lines)

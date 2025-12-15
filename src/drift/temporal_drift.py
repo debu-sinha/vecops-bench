@@ -23,25 +23,28 @@ import numpy as np
 
 class DriftType(Enum):
     """Types of corpus drift events."""
-    UPDATE = "update"           # Document content modified
-    DELETE = "delete"           # Document removed
-    ADD = "add"                 # New document added
-    SEMANTIC_SHIFT = "semantic" # Meaning changes (same words, different context)
-    EMBEDDING_DRIFT = "embed"   # Re-embedded with different model/version
+
+    UPDATE = "update"  # Document content modified
+    DELETE = "delete"  # Document removed
+    ADD = "add"  # New document added
+    SEMANTIC_SHIFT = "semantic"  # Meaning changes (same words, different context)
+    EMBEDDING_DRIFT = "embed"  # Re-embedded with different model/version
 
 
 class DriftPattern(Enum):
     """Predefined drift patterns simulating real-world scenarios."""
-    STABLE = "stable"           # Minimal changes (archival corpus)
-    MODERATE = "moderate"       # Normal business updates
-    HIGH_CHURN = "high_churn"   # Fast-moving content (news, social)
-    SEASONAL = "seasonal"       # Periodic bursts of updates
+
+    STABLE = "stable"  # Minimal changes (archival corpus)
+    MODERATE = "moderate"  # Normal business updates
+    HIGH_CHURN = "high_churn"  # Fast-moving content (news, social)
+    SEASONAL = "seasonal"  # Periodic bursts of updates
     CATASTROPHIC = "catastrophic"  # Major corpus overhaul
 
 
 @dataclass
 class DriftEvent:
     """Records a single drift event."""
+
     doc_id: str
     drift_type: DriftType
     timestamp: int
@@ -55,6 +58,7 @@ class DriftEvent:
 @dataclass
 class CorpusSnapshot:
     """Represents corpus state at a specific time point."""
+
     timestamp: int
     doc_ids: List[str]
     embeddings: np.ndarray
@@ -115,7 +119,7 @@ class TemporalDriftSimulator:
         doc_ids: List[str],
         embeddings: np.ndarray,
         texts: Optional[List[str]] = None,
-        seed: int = 42
+        seed: int = 42,
     ):
         """
         Initialize the drift simulator.
@@ -150,17 +154,17 @@ class TemporalDriftSimulator:
 
     def _save_snapshot(self) -> None:
         """Save current corpus state as a snapshot."""
-        self.snapshots.append(CorpusSnapshot(
-            timestamp=self.current_timestamp,
-            doc_ids=self.current_doc_ids.copy(),
-            embeddings=self.current_embeddings.copy(),
-            texts=self.current_texts.copy() if self.current_texts else None,
-        ))
+        self.snapshots.append(
+            CorpusSnapshot(
+                timestamp=self.current_timestamp,
+                doc_ids=self.current_doc_ids.copy(),
+                embeddings=self.current_embeddings.copy(),
+                texts=self.current_texts.copy() if self.current_texts else None,
+            )
+        )
 
     def _generate_drifted_embedding(
-        self,
-        original: np.ndarray,
-        drift_magnitude: float = 0.1
+        self, original: np.ndarray, drift_magnitude: float = 0.1
     ) -> np.ndarray:
         """
         Generate a drifted version of an embedding.
@@ -279,7 +283,7 @@ class TemporalDriftSimulator:
     def advance_time(
         self,
         pattern: DriftPattern = DriftPattern.MODERATE,
-        custom_config: Optional[Dict[str, float]] = None
+        custom_config: Optional[Dict[str, float]] = None,
     ) -> CorpusSnapshot:
         """
         Advance simulation by one time step with drift according to pattern.
@@ -317,10 +321,7 @@ class TemporalDriftSimulator:
 
         # Perform updates
         if n_updates > 0 and n_docs > 0:
-            update_ids = self.random.sample(
-                self.current_doc_ids,
-                min(n_updates, n_docs)
-            )
+            update_ids = self.random.sample(self.current_doc_ids, min(n_updates, n_docs))
             for doc_id in update_ids:
                 if doc_id in self.current_doc_ids:  # May have been deleted
                     self.simulate_update(doc_id)
@@ -329,7 +330,7 @@ class TemporalDriftSimulator:
         if n_deletes > 0 and len(self.current_doc_ids) > n_deletes:
             delete_ids = self.random.sample(
                 self.current_doc_ids,
-                min(n_deletes, len(self.current_doc_ids) - 1)  # Keep at least 1
+                min(n_deletes, len(self.current_doc_ids) - 1),  # Keep at least 1
             )
             for doc_id in delete_ids:
                 if doc_id in self.current_doc_ids:
@@ -342,8 +343,7 @@ class TemporalDriftSimulator:
         # Perform semantic shifts
         if n_semantic > 0 and len(self.current_doc_ids) > 0:
             semantic_ids = self.random.sample(
-                self.current_doc_ids,
-                min(n_semantic, len(self.current_doc_ids))
+                self.current_doc_ids, min(n_semantic, len(self.current_doc_ids))
             )
             for doc_id in semantic_ids:
                 if doc_id in self.current_doc_ids:
@@ -355,9 +355,7 @@ class TemporalDriftSimulator:
         return self.snapshots[-1]
 
     def run_simulation(
-        self,
-        num_steps: int,
-        pattern: DriftPattern = DriftPattern.MODERATE
+        self, num_steps: int, pattern: DriftPattern = DriftPattern.MODERATE
     ) -> List[CorpusSnapshot]:
         """
         Run drift simulation for multiple time steps.
@@ -378,9 +376,7 @@ class TemporalDriftSimulator:
         """Get statistics about the drift simulation."""
         events_by_type = {}
         for dt in DriftType:
-            events_by_type[dt.value] = sum(
-                1 for e in self.drift_history if e.drift_type == dt
-            )
+            events_by_type[dt.value] = sum(1 for e in self.drift_history if e.drift_type == dt)
 
         # Calculate corpus overlap with original
         original_set = set(self.original_doc_ids)
@@ -395,7 +391,9 @@ class TemporalDriftSimulator:
             "current_corpus_size": len(self.current_doc_ids),
             "corpus_overlap": overlap,
             "survival_rate": overlap / len(self.original_doc_ids) if self.original_doc_ids else 0,
-            "churn_rate": 1 - (overlap / len(self.original_doc_ids)) if self.original_doc_ids else 0,
+            "churn_rate": 1 - (overlap / len(self.original_doc_ids))
+            if self.original_doc_ids
+            else 0,
         }
 
     def get_snapshot_at_time(self, timestamp: int) -> Optional[CorpusSnapshot]:

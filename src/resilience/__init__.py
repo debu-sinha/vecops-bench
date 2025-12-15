@@ -9,10 +9,10 @@ The 3 Pillars of Operations:
 3. Ingestion Speed - Vectors per second during bulk load
 """
 
-from .cold_start import measure_cold_start, ColdStartResult
-from .crash_recovery import measure_crash_recovery, CrashRecoveryResult
-from .memory_pressure import run_memory_constrained_benchmark, MemoryPressureResult
-from .ingestion_speed import measure_ingestion_speed, IngestionResult
+from .cold_start import ColdStartResult, measure_cold_start
+from .crash_recovery import CrashRecoveryResult, measure_crash_recovery
+from .ingestion_speed import IngestionResult, measure_ingestion_speed
+from .memory_pressure import MemoryPressureResult, run_memory_constrained_benchmark
 
 __all__ = [
     "measure_cold_start",

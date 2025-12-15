@@ -1,14 +1,15 @@
 """Base class for vector database adapters."""
 
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
-import time
 
 
 @dataclass
 class QueryResult:
     """Result from a vector search query."""
+
     ids: List[str]
     scores: List[float]
     latency_ms: float
@@ -18,6 +19,7 @@ class QueryResult:
 @dataclass
 class IndexStats:
     """Statistics about a vector index."""
+
     num_vectors: int
     dimensions: int
     index_size_bytes: int
@@ -45,11 +47,7 @@ class VectorDBAdapter(ABC):
 
     @abstractmethod
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create a new vector index/collection."""
         pass
@@ -60,7 +58,7 @@ class VectorDBAdapter(ABC):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """Insert vectors into the index. Returns time taken in seconds."""
         pass
@@ -71,7 +69,7 @@ class VectorDBAdapter(ABC):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """Search for similar vectors."""
         pass
@@ -83,7 +81,7 @@ class VectorDBAdapter(ABC):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """Hybrid search combining dense and sparse retrieval."""
         pass
@@ -114,7 +112,7 @@ class VectorDBAdapter(ABC):
         collection_name: str,
         query_vectors: List[List[float]],
         top_k: int = 10,
-        duration_seconds: float = 10.0
+        duration_seconds: float = 10.0,
     ) -> Tuple[float, List[float]]:
         """
         Benchmark queries per second.

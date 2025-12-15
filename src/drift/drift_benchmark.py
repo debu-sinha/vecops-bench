@@ -12,18 +12,15 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 from tqdm import tqdm
 
-from .temporal_drift import (
-    TemporalDriftSimulator,
-    DriftPattern,
-    CorpusSnapshot,
-)
-from ..databases.base import VectorDBAdapter, QueryResult
-from ..metrics import recall_at_k, ndcg_at_k, latency_percentiles
+from ..databases.base import QueryResult, VectorDBAdapter
+from ..metrics import latency_percentiles, ndcg_at_k, recall_at_k
+from .temporal_drift import CorpusSnapshot, DriftPattern, TemporalDriftSimulator
 
 
 @dataclass
 class DriftBenchmarkResult:
     """Results from a drift benchmark run."""
+
     database: str
     dataset: str
     drift_pattern: str
@@ -81,12 +78,7 @@ class DriftBenchmark:
     vector databases maintain retrieval quality under corpus drift.
     """
 
-    def __init__(
-        self,
-        adapter: VectorDBAdapter,
-        collection_name: str,
-        seed: int = 42
-    ):
+    def __init__(self, adapter: VectorDBAdapter, collection_name: str, seed: int = 42):
         """
         Initialize drift benchmark.
 
@@ -134,9 +126,7 @@ class DriftBenchmark:
 
         # Initialize simulator
         simulator = TemporalDriftSimulator(
-            doc_ids=doc_ids,
-            embeddings=doc_embeddings,
-            seed=self.seed
+            doc_ids=doc_ids, embeddings=doc_embeddings, seed=self.seed
         )
 
         # Results storage
@@ -151,17 +141,14 @@ class DriftBenchmark:
 
         # Sample queries for consistent evaluation
         query_sample_indices = np.random.RandomState(self.seed).choice(
-            len(query_ids),
-            size=min(queries_per_timestamp, len(query_ids)),
-            replace=False
+            len(query_ids), size=min(queries_per_timestamp, len(query_ids)), replace=False
         )
 
         # Initial evaluation (timestamp 0)
         print("\n[T=0] Initial corpus evaluation...")
         self._index_corpus(simulator.snapshots[0])
         t0_metrics = self._evaluate_queries(
-            query_ids, query_embeddings, relevance_map,
-            query_sample_indices, top_k
+            query_ids, query_embeddings, relevance_map, query_sample_indices, top_k
         )
 
         timestamps.append(0)
@@ -191,9 +178,12 @@ class DriftBenchmark:
             # Note: We evaluate against ORIGINAL relevance judgments
             # This measures how well we can still find originally-relevant docs
             metrics = self._evaluate_queries(
-                query_ids, query_embeddings, relevance_map,
-                query_sample_indices, top_k,
-                current_doc_ids=set(snapshot.doc_ids)
+                query_ids,
+                query_embeddings,
+                relevance_map,
+                query_sample_indices,
+                top_k,
+                current_doc_ids=set(snapshot.doc_ids),
             )
 
             timestamps.append(t)
@@ -256,22 +246,16 @@ class DriftBenchmark:
 
         # Create new index
         self.adapter.create_index(
-            self.collection_name,
-            dimensions=snapshot.embeddings.shape[1],
-            metric="cosine"
+            self.collection_name, dimensions=snapshot.embeddings.shape[1], metric="cosine"
         )
 
         # Insert vectors
         self.adapter.insert_vectors(
-            self.collection_name,
-            ids=snapshot.doc_ids,
-            vectors=snapshot.embeddings.tolist()
+            self.collection_name, ids=snapshot.doc_ids, vectors=snapshot.embeddings.tolist()
         )
 
     def _update_index_incrementally(
-        self,
-        simulator: TemporalDriftSimulator,
-        current_timestamp: int
+        self, simulator: TemporalDriftSimulator, current_timestamp: int
     ) -> None:
         """
         Update index incrementally based on drift events.
@@ -280,10 +264,7 @@ class DriftBenchmark:
         This is a best-effort implementation.
         """
         # Get events from last timestamp
-        events = [
-            e for e in simulator.drift_history
-            if e.timestamp == current_timestamp
-        ]
+        events = [e for e in simulator.drift_history if e.timestamp == current_timestamp]
 
         for event in events:
             if event.drift_type.value == "delete":
@@ -296,7 +277,7 @@ class DriftBenchmark:
                         self.adapter.insert_vectors(
                             self.collection_name,
                             ids=[event.doc_id],
-                            vectors=[event.new_embedding.tolist()]
+                            vectors=[event.new_embedding.tolist()],
                         )
                     except Exception:
                         pass  # Fall back to full reindex
@@ -311,7 +292,7 @@ class DriftBenchmark:
         relevance_map: Dict[str, List[str]],
         sample_indices: np.ndarray,
         top_k: int,
-        current_doc_ids: Optional[set] = None
+        current_doc_ids: Optional[set] = None,
     ) -> Dict[str, float]:
         """Evaluate queries against current index."""
         recalls_10 = []
@@ -333,11 +314,7 @@ class DriftBenchmark:
                 continue  # Skip queries with no relevant docs in current corpus
 
             # Search
-            result = self.adapter.search(
-                self.collection_name,
-                query_vector,
-                top_k=top_k
-            )
+            result = self.adapter.search(self.collection_name, query_vector, top_k=top_k)
 
             latencies.append(result.latency_ms)
 
@@ -402,9 +379,7 @@ def run_drift_benchmark(
         print(f"{'='*60}")
 
         benchmark = DriftBenchmark(
-            adapter=adapter,
-            collection_name=f"{collection_name}_{pattern.value}",
-            seed=seed
+            adapter=adapter, collection_name=f"{collection_name}_{pattern.value}", seed=seed
         )
 
         result = benchmark.run(

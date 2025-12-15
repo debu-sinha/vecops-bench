@@ -14,12 +14,14 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
 import psutil
 
 
 @dataclass
 class ResourceUsage:
     """Captures resource usage at a point in time."""
+
     timestamp: datetime
     cpu_percent: float
     memory_mb: float
@@ -37,16 +39,17 @@ class CostModel:
 
     Supports both cloud (hourly pricing) and self-hosted (resource-based) costing.
     """
+
     name: str
 
     # Cloud pricing (if applicable)
-    hourly_rate_usd: float = 0.0          # $/hour for managed service
+    hourly_rate_usd: float = 0.0  # $/hour for managed service
     per_million_queries_usd: float = 0.0  # $/million queries (serverless)
-    storage_per_gb_month_usd: float = 0.0 # $/GB/month for storage
+    storage_per_gb_month_usd: float = 0.0  # $/GB/month for storage
 
     # Self-hosted pricing (compute costs)
     compute_hourly_rate_usd: float = 0.0  # $/hour for compute
-    memory_per_gb_hour_usd: float = 0.0   # $/GB/hour for memory
+    memory_per_gb_hour_usd: float = 0.0  # $/GB/hour for memory
 
     # Infrastructure constants
     instance_type: str = "unknown"
@@ -55,7 +58,7 @@ class CostModel:
     storage_gb: float = 0.0
 
     # Operational costs
-    setup_time_hours: float = 0.0        # Time to deploy
+    setup_time_hours: float = 0.0  # Time to deploy
     maintenance_hours_per_month: float = 0.0  # Ongoing maintenance
 
     def compute_hourly_cost(self, memory_usage_gb: float = 0) -> float:
@@ -65,10 +68,7 @@ class CostModel:
             return self.hourly_rate_usd
         else:
             # Self-hosted pricing
-            return (
-                self.compute_hourly_rate_usd +
-                memory_usage_gb * self.memory_per_gb_hour_usd
-            )
+            return self.compute_hourly_rate_usd + memory_usage_gb * self.memory_per_gb_hour_usd
 
     def compute_query_cost(self, num_queries: int, duration_hours: float) -> float:
         """Compute cost for a number of queries over a duration."""
@@ -97,7 +97,6 @@ COST_MODELS = {
         vcpus=2,
         memory_gb=8,
     ),
-
     # Self-hosted on cloud compute (AWS pricing)
     "self_hosted_small": CostModel(
         name="Self-hosted (Small)",
@@ -129,7 +128,6 @@ COST_MODELS = {
         setup_time_hours=4.0,
         maintenance_hours_per_month=8.0,
     ),
-
     # Free tier / local development
     "local_development": CostModel(
         name="Local Development",
@@ -142,6 +140,7 @@ COST_MODELS = {
 @dataclass
 class CostBreakdown:
     """Detailed cost breakdown for a benchmark run."""
+
     database: str
     cost_model: str
     duration_seconds: float
@@ -206,7 +205,7 @@ class CostTracker:
         self,
         cost_model_name: str = "local_development",
         custom_cost_model: Optional[CostModel] = None,
-        database_name: str = "unknown"
+        database_name: str = "unknown",
     ):
         """
         Initialize cost tracker.
@@ -288,19 +287,25 @@ class CostTracker:
                 cpu_percent=cpu_percent,
                 memory_mb=memory.used / (1024 * 1024),
                 memory_percent=memory.percent,
-                disk_read_mb=(disk_io.read_bytes - self._baseline_disk_read) / (1024 * 1024) if disk_io else 0,
-                disk_write_mb=(disk_io.write_bytes - self._baseline_disk_write) / (1024 * 1024) if disk_io else 0,
-                network_sent_mb=(net_io.bytes_sent - self._baseline_net_sent) / (1024 * 1024) if net_io else 0,
-                network_recv_mb=(net_io.bytes_recv - self._baseline_net_recv) / (1024 * 1024) if net_io else 0,
+                disk_read_mb=(disk_io.read_bytes - self._baseline_disk_read) / (1024 * 1024)
+                if disk_io
+                else 0,
+                disk_write_mb=(disk_io.write_bytes - self._baseline_disk_write) / (1024 * 1024)
+                if disk_io
+                else 0,
+                network_sent_mb=(net_io.bytes_sent - self._baseline_net_sent) / (1024 * 1024)
+                if net_io
+                else 0,
+                network_recv_mb=(net_io.bytes_recv - self._baseline_net_recv) / (1024 * 1024)
+                if net_io
+                else 0,
             )
             self._resource_samples.append(sample)
         except Exception:
             pass
 
     def get_cost_breakdown(
-        self,
-        recall: Optional[float] = None,
-        qps: Optional[float] = None
+        self, recall: Optional[float] = None, qps: Optional[float] = None
     ) -> CostBreakdown:
         """
         Compute cost breakdown for the tracked period.
@@ -321,7 +326,9 @@ class CostTracker:
 
         # Compute costs
         compute_cost = self.cost_model.compute_hourly_cost() * duration_hours
-        storage_cost = self._storage_gb * self.cost_model.storage_per_gb_month_usd / (30 * 24) * duration_hours
+        storage_cost = (
+            self._storage_gb * self.cost_model.storage_per_gb_month_usd / (30 * 24) * duration_hours
+        )
         query_cost = self.cost_model.compute_query_cost(self._query_count, duration_hours)
 
         # For serverless, query cost is primary; for self-hosted, compute cost is primary
@@ -333,11 +340,19 @@ class CostTracker:
         # Cost efficiency
         cost_per_query = total_cost / self._query_count if self._query_count > 0 else 0
         cost_per_million = cost_per_query * 1_000_000
-        queries_per_dollar = 1 / cost_per_query if cost_per_query > 0 else float('inf')
+        queries_per_dollar = 1 / cost_per_query if cost_per_query > 0 else float("inf")
 
         # Resource utilization
-        avg_cpu = sum(s.cpu_percent for s in self._resource_samples) / len(self._resource_samples) if self._resource_samples else 0
-        avg_memory = sum(s.memory_mb for s in self._resource_samples) / len(self._resource_samples) if self._resource_samples else 0
+        avg_cpu = (
+            sum(s.cpu_percent for s in self._resource_samples) / len(self._resource_samples)
+            if self._resource_samples
+            else 0
+        )
+        avg_memory = (
+            sum(s.memory_mb for s in self._resource_samples) / len(self._resource_samples)
+            if self._resource_samples
+            else 0
+        )
         peak_memory = max((s.memory_mb for s in self._resource_samples), default=0)
 
         # Performance-normalized costs
@@ -370,10 +385,7 @@ class CostTracker:
 
 
 def estimate_monthly_cost(
-    cost_model: CostModel,
-    queries_per_day: int,
-    storage_gb: float,
-    hours_per_day: float = 24.0
+    cost_model: CostModel, queries_per_day: int, storage_gb: float, hours_per_day: float = 24.0
 ) -> Dict[str, float]:
     """
     Estimate monthly cost for a deployment.
@@ -392,7 +404,9 @@ def estimate_monthly_cost(
     # Compute costs
     compute_monthly = cost_model.compute_hourly_cost() * hours_per_day * days_per_month
     storage_monthly = storage_gb * cost_model.storage_per_gb_month_usd
-    query_monthly = (queries_per_day * days_per_month / 1_000_000) * cost_model.per_million_queries_usd
+    query_monthly = (
+        queries_per_day * days_per_month / 1_000_000
+    ) * cost_model.per_million_queries_usd
 
     # Operational costs (engineer time)
     engineer_hourly_rate = 75.0  # Assumed $/hour for engineer
@@ -406,5 +420,7 @@ def estimate_monthly_cost(
         "query_monthly_usd": query_monthly,
         "operational_monthly_usd": operational_monthly,
         "total_monthly_usd": total,
-        "cost_per_query_usd": total / (queries_per_day * days_per_month) if queries_per_day > 0 else 0,
+        "cost_per_query_usd": total / (queries_per_day * days_per_month)
+        if queries_per_day > 0
+        else 0,
     }

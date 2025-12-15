@@ -2,10 +2,11 @@
 
 import time
 from typing import Any, Dict, List, Optional
+
 import chromadb
 from chromadb.config import Settings
 
-from .base import VectorDBAdapter, QueryResult, IndexStats
+from .base import IndexStats, QueryResult, VectorDBAdapter
 
 
 class ChromaAdapter(VectorDBAdapter):
@@ -51,11 +52,7 @@ class ChromaAdapter(VectorDBAdapter):
         self._is_connected = False
 
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create a new collection in ChromaDB."""
         if not self._is_connected:
@@ -67,7 +64,7 @@ class ChromaAdapter(VectorDBAdapter):
             "l2": "l2",
             "euclidean": "l2",
             "ip": "ip",
-            "inner_product": "ip"
+            "inner_product": "ip",
         }
         chroma_metric = metric_map.get(metric.lower(), "cosine")
 
@@ -78,8 +75,7 @@ class ChromaAdapter(VectorDBAdapter):
             pass
 
         self.collections[collection_name] = self.client.create_collection(
-            name=collection_name,
-            metadata={"hnsw:space": chroma_metric}
+            name=collection_name, metadata={"hnsw:space": chroma_metric}
         )
 
     def _get_collection(self, collection_name: str) -> chromadb.Collection:
@@ -97,7 +93,7 @@ class ChromaAdapter(VectorDBAdapter):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """Insert vectors into the collection."""
         collection = self._get_collection(collection_name)
@@ -107,15 +103,11 @@ class ChromaAdapter(VectorDBAdapter):
         start_time = time.perf_counter()
 
         for i in range(0, len(ids), batch_size):
-            batch_ids = ids[i:i + batch_size]
-            batch_vectors = vectors[i:i + batch_size]
-            batch_metadata = metadata[i:i + batch_size] if metadata else None
+            batch_ids = ids[i : i + batch_size]
+            batch_vectors = vectors[i : i + batch_size]
+            batch_metadata = metadata[i : i + batch_size] if metadata else None
 
-            collection.add(
-                ids=batch_ids,
-                embeddings=batch_vectors,
-                metadatas=batch_metadata
-            )
+            collection.add(ids=batch_ids, embeddings=batch_vectors, metadatas=batch_metadata)
 
         return time.perf_counter() - start_time
 
@@ -124,7 +116,7 @@ class ChromaAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """Search for similar vectors."""
         collection = self._get_collection(collection_name)
@@ -140,7 +132,7 @@ class ChromaAdapter(VectorDBAdapter):
             query_embeddings=[query_vector],
             n_results=top_k,
             where=where_filter,
-            include=["distances", "metadatas"]
+            include=["distances", "metadatas"],
         )
 
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -154,12 +146,7 @@ class ChromaAdapter(VectorDBAdapter):
         # For cosine, distance = 1 - similarity
         scores = [1 - d for d in distances]
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms,
-            metadata=metadatas
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms, metadata=metadatas)
 
     def hybrid_search(
         self,
@@ -167,7 +154,7 @@ class ChromaAdapter(VectorDBAdapter):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """
         Hybrid search combining dense and sparse retrieval.
@@ -190,7 +177,7 @@ class ChromaAdapter(VectorDBAdapter):
             dimensions=0,  # Not available
             index_size_bytes=0,  # Not available
             build_time_seconds=0,
-            memory_usage_bytes=0
+            memory_usage_bytes=0,
         )
 
     def delete_index(self, collection_name: str) -> None:
@@ -219,7 +206,7 @@ class ChromaAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         filter: Dict[str, Any],
-        top_k: int = 10
+        top_k: int = 10,
     ) -> QueryResult:
         """Search with metadata filtering."""
         return self.search(collection_name, query_vector, top_k, filter=filter)

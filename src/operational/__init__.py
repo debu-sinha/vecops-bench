@@ -6,15 +6,16 @@ be used as fallback when containers aren't running.
 """
 
 from .complexity import (
+    DATABASE_OPERATIONAL_PROFILES,  # DEPRECATED: Use RuntimeComplexityProber
+)
+from .complexity import (
+    DeploymentMethod,
     OperationalComplexityScore,
     OperationalMetrics,
     compute_complexity_score,
-    DATABASE_OPERATIONAL_PROFILES,  # DEPRECATED: Use RuntimeComplexityProber
     generate_complexity_report,
     score_all_databases,
-    DeploymentMethod,
 )
-
 from .runtime_prober import (
     RuntimeComplexityProber,
     RuntimeMetrics,

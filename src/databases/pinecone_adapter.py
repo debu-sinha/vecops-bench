@@ -2,9 +2,10 @@
 
 import time
 from typing import Any, Dict, List, Optional
+
 from pinecone import Pinecone, ServerlessSpec
 
-from .base import VectorDBAdapter, QueryResult, IndexStats
+from .base import IndexStats, QueryResult, VectorDBAdapter
 
 
 class PineconeAdapter(VectorDBAdapter):
@@ -40,11 +41,7 @@ class PineconeAdapter(VectorDBAdapter):
         self._is_connected = False
 
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create a new index in Pinecone."""
         if not self._is_connected:
@@ -57,7 +54,7 @@ class PineconeAdapter(VectorDBAdapter):
             "euclidean": "euclidean",
             "ip": "dotproduct",
             "inner_product": "dotproduct",
-            "dot": "dotproduct"
+            "dot": "dotproduct",
         }
         pinecone_metric = metric_map.get(metric.lower(), "cosine")
 
@@ -77,14 +74,11 @@ class PineconeAdapter(VectorDBAdapter):
             name=collection_name,
             dimension=dimensions,
             metric=pinecone_metric,
-            spec=ServerlessSpec(
-                cloud=cloud,
-                region=region
-            )
+            spec=ServerlessSpec(cloud=cloud, region=region),
         )
 
         # Wait for index to be ready
-        while not self.pc.describe_index(collection_name).status['ready']:
+        while not self.pc.describe_index(collection_name).status["ready"]:
             time.sleep(1)
 
         self.indexes[collection_name] = self.pc.Index(collection_name)
@@ -94,7 +88,7 @@ class PineconeAdapter(VectorDBAdapter):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """Insert vectors into the index."""
         if not self._is_connected:
@@ -109,17 +103,13 @@ class PineconeAdapter(VectorDBAdapter):
         start_time = time.perf_counter()
 
         for i in range(0, len(ids), batch_size):
-            batch_ids = ids[i:i + batch_size]
-            batch_vectors = vectors[i:i + batch_size]
-            batch_metadata = metadata[i:i + batch_size] if metadata else [{}] * len(batch_ids)
+            batch_ids = ids[i : i + batch_size]
+            batch_vectors = vectors[i : i + batch_size]
+            batch_metadata = metadata[i : i + batch_size] if metadata else [{}] * len(batch_ids)
 
             # Prepare vectors for upsert
             vectors_to_upsert = [
-                {
-                    "id": doc_id,
-                    "values": vec,
-                    "metadata": meta
-                }
+                {"id": doc_id, "values": vec, "metadata": meta}
                 for doc_id, vec, meta in zip(batch_ids, batch_vectors, batch_metadata)
             ]
 
@@ -132,7 +122,7 @@ class PineconeAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """Search for similar vectors."""
         if not self._is_connected:
@@ -149,10 +139,7 @@ class PineconeAdapter(VectorDBAdapter):
         start_time = time.perf_counter()
 
         results = index.query(
-            vector=query_vector,
-            top_k=top_k,
-            filter=pinecone_filter,
-            include_metadata=True
+            vector=query_vector, top_k=top_k, filter=pinecone_filter, include_metadata=True
         )
 
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -162,12 +149,7 @@ class PineconeAdapter(VectorDBAdapter):
         scores = [match.score for match in results.matches]
         metadatas = [match.metadata for match in results.matches]
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms,
-            metadata=metadatas
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms, metadata=metadatas)
 
     def hybrid_search(
         self,
@@ -175,7 +157,7 @@ class PineconeAdapter(VectorDBAdapter):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """
         Hybrid search combining dense and sparse retrieval.
@@ -203,7 +185,7 @@ class PineconeAdapter(VectorDBAdapter):
             dimensions=stats.dimension,
             index_size_bytes=0,  # Not available
             build_time_seconds=0,
-            memory_usage_bytes=0
+            memory_usage_bytes=0,
         )
 
     def delete_index(self, collection_name: str) -> None:
@@ -233,7 +215,7 @@ class PineconeAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         filter: Dict[str, Any],
-        top_k: int = 10
+        top_k: int = 10,
     ) -> QueryResult:
         """Search with metadata filtering."""
         return self.search(collection_name, query_vector, top_k, filter=filter)

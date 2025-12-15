@@ -2,11 +2,12 @@
 
 import time
 from typing import Any, Dict, List, Optional
+
+import numpy as np
 import psycopg2
 from psycopg2.extras import execute_values
-import numpy as np
 
-from .base import VectorDBAdapter, QueryResult, IndexStats
+from .base import IndexStats, QueryResult, VectorDBAdapter
 
 
 class PgvectorAdapter(VectorDBAdapter):
@@ -34,7 +35,7 @@ class PgvectorAdapter(VectorDBAdapter):
             port=self.config.get("port", 5432),
             database=self.config.get("database", "vectordb"),
             user=self.config.get("user", "postgres"),
-            password=self.config.get("password", "")
+            password=self.config.get("password", ""),
         )
         self.cursor = self.conn.cursor()
 
@@ -55,11 +56,7 @@ class PgvectorAdapter(VectorDBAdapter):
         self._is_connected = False
 
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create a new table with vector column and index."""
         if not self._is_connected:
@@ -71,7 +68,7 @@ class PgvectorAdapter(VectorDBAdapter):
             "l2": "vector_l2_ops",
             "euclidean": "vector_l2_ops",
             "ip": "vector_ip_ops",
-            "inner_product": "vector_ip_ops"
+            "inner_product": "vector_ip_ops",
         }
         ops_class = metric_map.get(metric.lower(), "vector_cosine_ops")
 
@@ -82,14 +79,16 @@ class PgvectorAdapter(VectorDBAdapter):
         self.cursor.execute(f"DROP TABLE IF EXISTS {collection_name}")
 
         # Create table
-        self.cursor.execute(f"""
+        self.cursor.execute(
+            f"""
             CREATE TABLE {collection_name} (
                 id SERIAL PRIMARY KEY,
                 doc_id TEXT UNIQUE,
                 embedding vector({dimensions}),
                 metadata JSONB
             )
-        """)
+        """
+        )
 
         # Create index (HNSW or IVFFlat)
         index_type = kwargs.get("index_type", "hnsw")
@@ -97,26 +96,32 @@ class PgvectorAdapter(VectorDBAdapter):
         if index_type == "hnsw":
             m = kwargs.get("m", 16)
             ef_construction = kwargs.get("ef_construction", 64)
-            self.cursor.execute(f"""
+            self.cursor.execute(
+                f"""
                 CREATE INDEX {collection_name}_embedding_idx
                 ON {collection_name}
                 USING hnsw (embedding {ops_class})
                 WITH (m = {m}, ef_construction = {ef_construction})
-            """)
+            """
+            )
         elif index_type == "ivfflat":
             lists = kwargs.get("lists", 100)
-            self.cursor.execute(f"""
+            self.cursor.execute(
+                f"""
                 CREATE INDEX {collection_name}_embedding_idx
                 ON {collection_name}
                 USING ivfflat (embedding {ops_class})
                 WITH (lists = {lists})
-            """)
+            """
+            )
 
         # Create index on doc_id for faster lookups
-        self.cursor.execute(f"""
+        self.cursor.execute(
+            f"""
             CREATE INDEX {collection_name}_doc_id_idx
             ON {collection_name} (doc_id)
-        """)
+        """
+        )
 
         self.conn.commit()
 
@@ -125,7 +130,7 @@ class PgvectorAdapter(VectorDBAdapter):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """Insert vectors into the table."""
         if not self._is_connected:
@@ -137,9 +142,9 @@ class PgvectorAdapter(VectorDBAdapter):
         start_time = time.perf_counter()
 
         for i in range(0, len(ids), batch_size):
-            batch_ids = ids[i:i + batch_size]
-            batch_vectors = vectors[i:i + batch_size]
-            batch_metadata = metadata[i:i + batch_size] if metadata else [{}] * len(batch_ids)
+            batch_ids = ids[i : i + batch_size]
+            batch_vectors = vectors[i : i + batch_size]
+            batch_metadata = metadata[i : i + batch_size] if metadata else [{}] * len(batch_ids)
 
             # Prepare data for bulk insert
             data = [
@@ -156,7 +161,7 @@ class PgvectorAdapter(VectorDBAdapter):
                 SET embedding = EXCLUDED.embedding, metadata = EXCLUDED.metadata
                 """,
                 data,
-                template="(%s, %s::vector, %s::jsonb)"
+                template="(%s, %s::vector, %s::jsonb)",
             )
 
         self.conn.commit()
@@ -167,21 +172,21 @@ class PgvectorAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """Search for similar vectors."""
         if not self._is_connected:
             raise RuntimeError("Not connected to PostgreSQL")
 
         # Select distance operator based on metric
-        metric = getattr(self, '_current_metric', 'cosine')
-        if metric in ('cosine', 'cos'):
+        metric = getattr(self, "_current_metric", "cosine")
+        if metric in ("cosine", "cos"):
             distance_op = "<=>"  # Cosine distance
             score_expr = "1 - (embedding <=> %s::vector)"  # Convert to similarity
-        elif metric in ('l2', 'euclidean'):
+        elif metric in ("l2", "euclidean"):
             distance_op = "<->"  # L2 distance
             score_expr = "-1 * (embedding <-> %s::vector)"  # Negative distance as score
-        elif metric in ('ip', 'inner_product', 'dot'):
+        elif metric in ("ip", "inner_product", "dot"):
             distance_op = "<#>"  # Inner product (negative)
             score_expr = "-1 * (embedding <#> %s::vector)"  # Inner product as score
         else:
@@ -216,12 +221,7 @@ class PgvectorAdapter(VectorDBAdapter):
         scores = [float(row[1]) for row in results]
         metadatas = [row[2] if row[2] else {} for row in results]
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms,
-            metadata=metadatas
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms, metadata=metadatas)
 
     def hybrid_search(
         self,
@@ -229,7 +229,7 @@ class PgvectorAdapter(VectorDBAdapter):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """
         Hybrid search combining dense and sparse (full-text) retrieval.
@@ -242,10 +242,12 @@ class PgvectorAdapter(VectorDBAdapter):
         query_vector_str = str(query_vector)
 
         # Check if full-text search column exists
-        self.cursor.execute(f"""
+        self.cursor.execute(
+            f"""
             SELECT column_name FROM information_schema.columns
             WHERE table_name = '{collection_name}' AND column_name = 'text_content'
-        """)
+        """
+        )
 
         if not self.cursor.fetchone():
             # Fall back to dense search if no text column
@@ -275,12 +277,19 @@ class PgvectorAdapter(VectorDBAdapter):
 
         start_time = time.perf_counter()
 
-        self.cursor.execute(query, (
-            query_vector_str, top_k * 2,
-            query_text, query_text, top_k * 2,
-            alpha, 1 - alpha,
-            top_k
-        ))
+        self.cursor.execute(
+            query,
+            (
+                query_vector_str,
+                top_k * 2,
+                query_text,
+                query_text,
+                top_k * 2,
+                alpha,
+                1 - alpha,
+                top_k,
+            ),
+        )
         results = self.cursor.fetchall()
 
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -288,12 +297,7 @@ class PgvectorAdapter(VectorDBAdapter):
         ids = [row[0] for row in results]
         scores = [float(row[1]) for row in results]
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms,
-            metadata=None
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms, metadata=None)
 
     def get_index_stats(self, collection_name: str) -> IndexStats:
         """Get statistics about the table/index."""
@@ -305,10 +309,12 @@ class PgvectorAdapter(VectorDBAdapter):
         num_vectors = self.cursor.fetchone()[0]
 
         # Get vector dimensions
-        self.cursor.execute(f"""
+        self.cursor.execute(
+            f"""
             SELECT atttypmod FROM pg_attribute
             WHERE attrelid = '{collection_name}'::regclass AND attname = 'embedding'
-        """)
+        """
+        )
         result = self.cursor.fetchone()
         dimensions = result[0] if result else 0
 
@@ -321,7 +327,7 @@ class PgvectorAdapter(VectorDBAdapter):
             dimensions=dimensions,
             index_size_bytes=index_size,
             build_time_seconds=0,
-            memory_usage_bytes=0
+            memory_usage_bytes=0,
         )
 
     def delete_index(self, collection_name: str) -> None:
@@ -362,7 +368,7 @@ class PgvectorAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         filter: Dict[str, Any],
-        top_k: int = 10
+        top_k: int = 10,
     ) -> QueryResult:
         """Search with metadata filtering."""
         return self.search(collection_name, query_vector, top_k, filter=filter)

@@ -1,6 +1,7 @@
 """Evaluation metrics for vector database benchmarking."""
 
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import numpy as np
 
 
@@ -24,6 +25,7 @@ def precision_at_k(retrieved_ids: List[str], relevant_ids: List[str], k: int) ->
 
 def ndcg_at_k(retrieved_ids: List[str], relevant_ids: List[str], k: int) -> float:
     """Calculate NDCG@K."""
+
     def dcg(relevances: List[int], k: int) -> float:
         relevances = relevances[:k]
         return sum(rel / np.log2(i + 2) for i, rel in enumerate(relevances))
@@ -56,9 +58,7 @@ def latency_percentiles(latencies: List[float]) -> Dict[str, float]:
 
 
 def cost_per_million_queries(
-    cloud_cost_per_hour: float,
-    qps: float,
-    duration_hours: float = 1.0
+    cloud_cost_per_hour: float, qps: float, duration_hours: float = 1.0
 ) -> float:
     """Calculate cost per 1 million queries."""
     queries_per_hour = qps * 3600

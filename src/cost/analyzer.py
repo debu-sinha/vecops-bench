@@ -14,6 +14,7 @@ import numpy as np
 @dataclass
 class CostEfficiencyMetrics:
     """Cost-efficiency metrics for a database."""
+
     database: str
 
     # Raw performance
@@ -25,13 +26,13 @@ class CostEfficiencyMetrics:
     cost_per_million_queries_usd: float
 
     # Cost-normalized metrics
-    recall_per_dollar: float          # Recall points per $
-    qps_per_dollar: float             # QPS per $
-    latency_cost_product: float       # Lower is better: latency_ms * $/query
+    recall_per_dollar: float  # Recall points per $
+    qps_per_dollar: float  # QPS per $
+    latency_cost_product: float  # Lower is better: latency_ms * $/query
 
     # Value metrics
-    value_score: float                # Composite value metric
-    is_pareto_optimal: bool = False   # On the cost-quality Pareto frontier
+    value_score: float  # Composite value metric
+    is_pareto_optimal: bool = False  # On the cost-quality Pareto frontier
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -72,13 +73,15 @@ class CostAnalyzer:
         cost_per_million_queries_usd: float,
     ) -> None:
         """Add a benchmark result for analysis."""
-        self.results.append({
-            "database": database,
-            "recall_at_10": recall_at_10,
-            "latency_p50_ms": latency_p50_ms,
-            "qps": qps,
-            "cost_per_million_queries_usd": cost_per_million_queries_usd,
-        })
+        self.results.append(
+            {
+                "database": database,
+                "recall_at_10": recall_at_10,
+                "latency_p50_ms": latency_p50_ms,
+                "qps": qps,
+                "cost_per_million_queries_usd": cost_per_million_queries_usd,
+            }
+        )
 
     def compute_metrics(self) -> List[CostEfficiencyMetrics]:
         """Compute cost-efficiency metrics for all databases."""
@@ -91,8 +94,14 @@ class CostAnalyzer:
             cost_per_query = result["cost_per_million_queries_usd"] / 1_000_000
 
             # Cost-normalized metrics
-            recall_per_dollar = result["recall_at_10"] / cost_per_query if cost_per_query > 0 else float('inf')
-            qps_per_dollar = result["qps"] / result["cost_per_million_queries_usd"] if result["cost_per_million_queries_usd"] > 0 else float('inf')
+            recall_per_dollar = (
+                result["recall_at_10"] / cost_per_query if cost_per_query > 0 else float("inf")
+            )
+            qps_per_dollar = (
+                result["qps"] / result["cost_per_million_queries_usd"]
+                if result["cost_per_million_queries_usd"] > 0
+                else float("inf")
+            )
             latency_cost_product = result["latency_p50_ms"] * cost_per_query
 
             # Value score: higher is better
@@ -102,20 +111,22 @@ class CostAnalyzer:
                 result["recall_at_10"],
                 result["latency_p50_ms"],
                 result["qps"],
-                result["cost_per_million_queries_usd"]
+                result["cost_per_million_queries_usd"],
             )
 
-            metrics.append(CostEfficiencyMetrics(
-                database=result["database"],
-                recall_at_10=result["recall_at_10"],
-                latency_p50_ms=result["latency_p50_ms"],
-                qps=result["qps"],
-                cost_per_million_queries_usd=result["cost_per_million_queries_usd"],
-                recall_per_dollar=recall_per_dollar,
-                qps_per_dollar=qps_per_dollar,
-                latency_cost_product=latency_cost_product,
-                value_score=value_score,
-            ))
+            metrics.append(
+                CostEfficiencyMetrics(
+                    database=result["database"],
+                    recall_at_10=result["recall_at_10"],
+                    latency_p50_ms=result["latency_p50_ms"],
+                    qps=result["qps"],
+                    cost_per_million_queries_usd=result["cost_per_million_queries_usd"],
+                    recall_per_dollar=recall_per_dollar,
+                    qps_per_dollar=qps_per_dollar,
+                    latency_cost_product=latency_cost_product,
+                    value_score=value_score,
+                )
+            )
 
         # Identify Pareto optimal points
         pareto_indices = self._compute_pareto_frontier(metrics)
@@ -125,11 +136,7 @@ class CostAnalyzer:
         return metrics
 
     def _compute_value_score(
-        self,
-        recall: float,
-        latency_ms: float,
-        qps: float,
-        cost_per_million: float
+        self, recall: float, latency_ms: float, qps: float, cost_per_million: float
     ) -> float:
         """
         Compute composite value score.
@@ -146,10 +153,7 @@ class CostAnalyzer:
         # We'll normalize after computing all scores
         return raw_value
 
-    def _compute_pareto_frontier(
-        self,
-        metrics: List[CostEfficiencyMetrics]
-    ) -> List[int]:
+    def _compute_pareto_frontier(self, metrics: List[CostEfficiencyMetrics]) -> List[int]:
         """
         Identify Pareto optimal points.
 
@@ -171,15 +175,23 @@ class CostAnalyzer:
                 j_better_recall = metrics[j].recall_at_10 >= metrics[i].recall_at_10
                 j_better_latency = metrics[j].latency_p50_ms <= metrics[i].latency_p50_ms
                 j_better_qps = metrics[j].qps >= metrics[i].qps
-                j_better_cost = metrics[j].cost_per_million_queries_usd <= metrics[i].cost_per_million_queries_usd
+                j_better_cost = (
+                    metrics[j].cost_per_million_queries_usd
+                    <= metrics[i].cost_per_million_queries_usd
+                )
 
-                all_better_or_equal = j_better_recall and j_better_latency and j_better_qps and j_better_cost
+                all_better_or_equal = (
+                    j_better_recall and j_better_latency and j_better_qps and j_better_cost
+                )
 
                 strictly_better = (
-                    (metrics[j].recall_at_10 > metrics[i].recall_at_10) or
-                    (metrics[j].latency_p50_ms < metrics[i].latency_p50_ms) or
-                    (metrics[j].qps > metrics[i].qps) or
-                    (metrics[j].cost_per_million_queries_usd < metrics[i].cost_per_million_queries_usd)
+                    (metrics[j].recall_at_10 > metrics[i].recall_at_10)
+                    or (metrics[j].latency_p50_ms < metrics[i].latency_p50_ms)
+                    or (metrics[j].qps > metrics[i].qps)
+                    or (
+                        metrics[j].cost_per_million_queries_usd
+                        < metrics[i].cost_per_million_queries_usd
+                    )
                 )
 
                 if all_better_or_equal and strictly_better:
@@ -191,10 +203,7 @@ class CostAnalyzer:
 
         return pareto_indices
 
-    def get_best_for_budget(
-        self,
-        max_cost_per_million: float
-    ) -> Optional[CostEfficiencyMetrics]:
+    def get_best_for_budget(self, max_cost_per_million: float) -> Optional[CostEfficiencyMetrics]:
         """
         Find best database within a cost budget.
 
@@ -206,8 +215,7 @@ class CostAnalyzer:
         """
         metrics = self.compute_metrics()
         within_budget = [
-            m for m in metrics
-            if m.cost_per_million_queries_usd <= max_cost_per_million
+            m for m in metrics if m.cost_per_million_queries_usd <= max_cost_per_million
         ]
 
         if not within_budget:
@@ -215,10 +223,7 @@ class CostAnalyzer:
 
         return max(within_budget, key=lambda m: m.recall_at_10)
 
-    def get_cheapest_for_recall(
-        self,
-        min_recall: float
-    ) -> Optional[CostEfficiencyMetrics]:
+    def get_cheapest_for_recall(self, min_recall: float) -> Optional[CostEfficiencyMetrics]:
         """
         Find cheapest database meeting a recall requirement.
 
@@ -229,10 +234,7 @@ class CostAnalyzer:
             Cheapest database meeting requirement, or None
         """
         metrics = self.compute_metrics()
-        meeting_recall = [
-            m for m in metrics
-            if m.recall_at_10 >= min_recall
-        ]
+        meeting_recall = [m for m in metrics if m.recall_at_10 >= min_recall]
 
         if not meeting_recall:
             return None
@@ -240,10 +242,7 @@ class CostAnalyzer:
         return min(meeting_recall, key=lambda m: m.cost_per_million_queries_usd)
 
     def break_even_analysis(
-        self,
-        db1: str,
-        db2: str,
-        metric: str = "recall_at_10"
+        self, db1: str, db2: str, metric: str = "recall_at_10"
     ) -> Dict[str, Any]:
         """
         Compute break-even point between two databases.
@@ -280,15 +279,18 @@ class CostAnalyzer:
             "db2_cost_per_million": m2.cost_per_million_queries_usd,
             "cost_difference": cost_diff,
             "performance_difference": perf_diff,
-            "cost_per_performance_point": abs(cost_diff / perf_diff) if perf_diff != 0 else float('inf'),
-            "recommendation": db1 if (perf_diff > 0 and cost_diff <= 0) or (perf_diff > 0 and cost_diff / perf_diff < 1000) else db2,
+            "cost_per_performance_point": abs(cost_diff / perf_diff)
+            if perf_diff != 0
+            else float("inf"),
+            "recommendation": db1
+            if (perf_diff > 0 and cost_diff <= 0)
+            or (perf_diff > 0 and cost_diff / perf_diff < 1000)
+            else db2,
         }
 
 
 def compute_pareto_frontier(
-    points: List[Tuple[float, float]],
-    maximize_x: bool = True,
-    maximize_y: bool = True
+    points: List[Tuple[float, float]], maximize_x: bool = True, maximize_y: bool = True
 ) -> List[int]:
     """
     Compute 2D Pareto frontier.
@@ -340,8 +342,7 @@ def compute_pareto_frontier(
 
 
 def generate_cost_report(
-    metrics: List[CostEfficiencyMetrics],
-    output_format: str = "markdown"
+    metrics: List[CostEfficiencyMetrics], output_format: str = "markdown"
 ) -> str:
     """
     Generate a cost analysis report.
@@ -369,11 +370,13 @@ def generate_cost_report(
                 f"{m.value_score:.2f} | {pareto} |"
             )
 
-        lines.extend([
-            "\n## Cost-Normalized Metrics\n",
-            "| Database | Recall/$ | QPS/$ | Latency×Cost |",
-            "|----------|----------|-------|--------------|",
-        ])
+        lines.extend(
+            [
+                "\n## Cost-Normalized Metrics\n",
+                "| Database | Recall/$ | QPS/$ | Latency×Cost |",
+                "|----------|----------|-------|--------------|",
+            ]
+        )
 
         for m in metrics:
             lines.append(
@@ -383,11 +386,13 @@ def generate_cost_report(
 
         # Pareto optimal
         pareto_dbs = [m.database for m in metrics if m.is_pareto_optimal]
-        lines.extend([
-            f"\n## Pareto Optimal Databases\n",
-            f"The following databases are on the cost-quality Pareto frontier:\n",
-            f"**{', '.join(pareto_dbs)}**\n",
-        ])
+        lines.extend(
+            [
+                "\n## Pareto Optimal Databases\n",
+                "The following databases are on the cost-quality Pareto frontier:\n",
+                f"**{', '.join(pareto_dbs)}**\n",
+            ]
+        )
 
         return "\n".join(lines)
 
@@ -410,11 +415,13 @@ def generate_cost_report(
                 f"{m.value_score:.2f} & {pareto} \\\\"
             )
 
-        lines.extend([
-            r"\bottomrule",
-            r"\end{tabular}",
-            r"\end{table}",
-        ])
+        lines.extend(
+            [
+                r"\bottomrule",
+                r"\end{tabular}",
+                r"\end{table}",
+            ]
+        )
 
         return "\n".join(lines)
 

@@ -4,6 +4,7 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, Dict, Generator, List, Optional, Tuple
+
 import numpy as np
 from numpy.random import default_rng
 
@@ -11,6 +12,7 @@ from numpy.random import default_rng
 @dataclass
 class QueryInstance:
     """A single query instance in a workload."""
+
     query_id: str
     vector: List[float]
     text: Optional[str] = None
@@ -29,11 +31,7 @@ class WorkloadGenerator(ABC):
 
     @abstractmethod
     def generate(
-        self,
-        query_vectors: np.ndarray,
-        query_ids: List[str],
-        num_queries: int,
-        **kwargs
+        self, query_vectors: np.ndarray, query_ids: List[str], num_queries: int, **kwargs
     ) -> Generator[QueryInstance, None, None]:
         """Generate query instances."""
         pass
@@ -52,7 +50,7 @@ class UniformWorkload(WorkloadGenerator):
         query_ids: List[str],
         num_queries: int,
         top_k: int = 10,
-        **kwargs
+        **kwargs,
     ) -> Generator[QueryInstance, None, None]:
         """Generate uniformly distributed queries."""
         indices = self.rng.choice(len(query_ids), size=num_queries, replace=True)
@@ -62,7 +60,7 @@ class UniformWorkload(WorkloadGenerator):
                 query_id=query_ids[idx],
                 vector=query_vectors[idx].tolist(),
                 top_k=top_k,
-                timestamp=time.time()
+                timestamp=time.time(),
             )
 
 
@@ -88,7 +86,7 @@ class BurstyWorkload(WorkloadGenerator):
         num_queries: int,
         top_k: int = 10,
         burst_probability: float = 0.2,
-        **kwargs
+        **kwargs,
     ) -> Generator[QueryInstance, None, None]:
         """Generate bursty query pattern."""
         current_time = 0.0
@@ -112,7 +110,7 @@ class BurstyWorkload(WorkloadGenerator):
                 query_id=query_ids[idx],
                 vector=query_vectors[idx].tolist(),
                 top_k=top_k,
-                timestamp=current_time
+                timestamp=current_time,
             )
 
             queries_generated += 1
@@ -125,7 +123,7 @@ class FilteredWorkload(WorkloadGenerator):
         self,
         seed: int = 42,
         filter_fields: Optional[List[str]] = None,
-        filter_values: Optional[Dict[str, List[Any]]] = None
+        filter_values: Optional[Dict[str, List[Any]]] = None,
     ):
         """
         Initialize filtered workload.
@@ -138,7 +136,7 @@ class FilteredWorkload(WorkloadGenerator):
         self.filter_fields = filter_fields or ["category", "year"]
         self.filter_values = filter_values or {
             "category": ["A", "B", "C", "D"],
-            "year": [2020, 2021, 2022, 2023, 2024]
+            "year": [2020, 2021, 2022, 2023, 2024],
         }
 
     def generate(
@@ -148,7 +146,7 @@ class FilteredWorkload(WorkloadGenerator):
         num_queries: int,
         top_k: int = 10,
         filter_probability: float = 0.5,
-        **kwargs
+        **kwargs,
     ) -> Generator[QueryInstance, None, None]:
         """Generate queries with varying filter complexity."""
         for i in range(num_queries):
@@ -160,9 +158,7 @@ class FilteredWorkload(WorkloadGenerator):
                 # Random number of filter conditions (1-3)
                 num_conditions = self.rng.integers(1, min(4, len(self.filter_fields) + 1))
                 fields_to_use = self.rng.choice(
-                    self.filter_fields,
-                    size=num_conditions,
-                    replace=False
+                    self.filter_fields, size=num_conditions, replace=False
                 )
 
                 query_filter = {}
@@ -176,7 +172,7 @@ class FilteredWorkload(WorkloadGenerator):
                 vector=query_vectors[idx].tolist(),
                 filter=query_filter,
                 top_k=top_k,
-                timestamp=time.time()
+                timestamp=time.time(),
             )
 
 
@@ -199,7 +195,7 @@ class SkewedWorkload(WorkloadGenerator):
         query_ids: List[str],
         num_queries: int,
         top_k: int = 10,
-        **kwargs
+        **kwargs,
     ) -> Generator[QueryInstance, None, None]:
         """Generate queries following Zipfian distribution."""
         n = len(query_ids)
@@ -217,7 +213,7 @@ class SkewedWorkload(WorkloadGenerator):
                 query_id=query_ids[idx],
                 vector=query_vectors[idx].tolist(),
                 top_k=top_k,
-                timestamp=time.time()
+                timestamp=time.time(),
             )
 
 
@@ -240,7 +236,7 @@ class TemporalDriftWorkload(WorkloadGenerator):
         query_ids: List[str],
         num_queries: int,
         top_k: int = 10,
-        **kwargs
+        **kwargs,
     ) -> Generator[QueryInstance, None, None]:
         """Generate queries with drifting distribution."""
         n = len(query_ids)
@@ -256,12 +252,12 @@ class TemporalDriftWorkload(WorkloadGenerator):
                 query_id=query_ids[idx],
                 vector=query_vectors[idx].tolist(),
                 top_k=top_k,
-                timestamp=time.time()
+                timestamp=time.time(),
             )
 
             # Drift the distribution
             # Increase weight for recently queried items, decrease for others
-            weights *= (1 - self.drift_rate)
+            weights *= 1 - self.drift_rate
             weights[idx] += self.drift_rate
 
             # Re-normalize
@@ -274,7 +270,7 @@ def generate_workload(
     query_ids: List[str],
     num_queries: int,
     seed: int = 42,
-    **kwargs
+    **kwargs,
 ) -> Generator[QueryInstance, None, None]:
     """
     Factory function to generate workloads.
@@ -299,40 +295,30 @@ def generate_workload(
     }
 
     if workload_type.lower() not in workloads:
-        raise ValueError(f"Unknown workload type: {workload_type}. "
-                        f"Available: {list(workloads.keys())}")
+        raise ValueError(
+            f"Unknown workload type: {workload_type}. " f"Available: {list(workloads.keys())}"
+        )
 
     generator_class = workloads[workload_type.lower()]
 
     # Extract class-specific kwargs
     if workload_type.lower() == "bursty":
         generator = generator_class(
-            seed=seed,
-            rate=kwargs.get("rate", 10.0),
-            burst_factor=kwargs.get("burst_factor", 5.0)
+            seed=seed, rate=kwargs.get("rate", 10.0), burst_factor=kwargs.get("burst_factor", 5.0)
         )
     elif workload_type.lower() == "filtered":
         generator = generator_class(
             seed=seed,
             filter_fields=kwargs.get("filter_fields"),
-            filter_values=kwargs.get("filter_values")
+            filter_values=kwargs.get("filter_values"),
         )
     elif workload_type.lower() == "skewed":
-        generator = generator_class(
-            seed=seed,
-            alpha=kwargs.get("alpha", 1.2)
-        )
+        generator = generator_class(seed=seed, alpha=kwargs.get("alpha", 1.2))
     elif workload_type.lower() == "drift":
-        generator = generator_class(
-            seed=seed,
-            drift_rate=kwargs.get("drift_rate", 0.1)
-        )
+        generator = generator_class(seed=seed, drift_rate=kwargs.get("drift_rate", 0.1))
     else:
         generator = generator_class(seed=seed)
 
     return generator.generate(
-        query_vectors=query_vectors,
-        query_ids=query_ids,
-        num_queries=num_queries,
-        **kwargs
+        query_vectors=query_vectors, query_ids=query_ids, num_queries=num_queries, **kwargs
     )

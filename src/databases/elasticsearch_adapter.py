@@ -20,7 +20,7 @@ try:
 except ImportError:
     raise ImportError("elasticsearch not installed. Run: pip install elasticsearch>=8.0.0")
 
-from .base import VectorDBAdapter, QueryResult, IndexStats
+from .base import IndexStats, QueryResult, VectorDBAdapter
 
 
 class ElasticsearchAdapter(VectorDBAdapter):
@@ -55,14 +55,10 @@ class ElasticsearchAdapter(VectorDBAdapter):
         auth = (self.user, self.password) if self.password else None
 
         self.client = Elasticsearch(
-            hosts=[{
-                "host": self.host,
-                "port": self.port,
-                "scheme": self.scheme
-            }],
+            hosts=[{"host": self.host, "port": self.port, "scheme": self.scheme}],
             basic_auth=auth,
             verify_certs=False,  # For local testing
-            request_timeout=60
+            request_timeout=60,
         )
 
         # Verify connection
@@ -78,19 +74,11 @@ class ElasticsearchAdapter(VectorDBAdapter):
         self._is_connected = False
 
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create an Elasticsearch index with dense_vector field."""
         # Map metric names
-        similarity_map = {
-            "cosine": "cosine",
-            "l2": "l2_norm",
-            "dot": "dot_product"
-        }
+        similarity_map = {"cosine": "cosine", "l2": "l2_norm", "dot": "dot_product"}
         similarity = similarity_map.get(metric, "cosine")
 
         # Index mapping with dense_vector
@@ -100,7 +88,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
                 "number_of_replicas": self.replicas,
                 "index.knn": True,
                 # Optimize for search (not frequent updates)
-                "refresh_interval": "-1"  # Disable during bulk load
+                "refresh_interval": "-1",  # Disable during bulk load
             },
             "mappings": {
                 "properties": {
@@ -109,13 +97,13 @@ class ElasticsearchAdapter(VectorDBAdapter):
                         "type": "dense_vector",
                         "dims": dimensions,
                         "index": True,
-                        "similarity": similarity
+                        "similarity": similarity,
                     },
                     "text": {"type": "text"},
                     "category": {"type": "keyword"},
-                    "metadata": {"type": "object", "enabled": False}
+                    "metadata": {"type": "object", "enabled": False},
                 }
-            }
+            },
         }
 
         # Delete if exists
@@ -130,7 +118,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """
         Bulk insert vectors into Elasticsearch.
@@ -149,18 +137,14 @@ class ElasticsearchAdapter(VectorDBAdapter):
                 "_source": {
                     "id": doc_id,
                     "embedding": vector,
-                    "category": metadata[i].get("category") if metadata else "default"
-                }
+                    "category": metadata[i].get("category") if metadata else "default",
+                },
             }
             actions.append(doc)
 
         # Bulk insert with optimizations
         success, failed = bulk(
-            self.client,
-            actions,
-            chunk_size=1000,
-            request_timeout=300,
-            raise_on_error=False
+            self.client, actions, chunk_size=1000, request_timeout=300, raise_on_error=False
         )
 
         elapsed = time.perf_counter() - start_time
@@ -182,20 +166,14 @@ class ElasticsearchAdapter(VectorDBAdapter):
         start_time = time.perf_counter()
 
         # Re-enable refresh
-        self.client.indices.put_settings(
-            index=collection_name,
-            body={"refresh_interval": "1s"}
-        )
+        self.client.indices.put_settings(index=collection_name, body={"refresh_interval": "1s"})
 
         # Force refresh to make all documents searchable
         self.client.indices.refresh(index=collection_name)
 
         # Force merge for optimal search performance
         # This is expensive - only call once after all data is loaded
-        self.client.indices.forcemerge(
-            index=collection_name,
-            max_num_segments=1
-        )
+        self.client.indices.forcemerge(index=collection_name, max_num_segments=1)
 
         elapsed = time.perf_counter() - start_time
         return elapsed
@@ -205,7 +183,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """
         kNN search with optional filtering.
@@ -220,7 +198,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
             "field": "embedding",
             "query_vector": query_vector,
             "k": top_k,
-            "num_candidates": self.num_candidates
+            "num_candidates": self.num_candidates,
         }
 
         # Add filter if provided
@@ -230,10 +208,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
 
         # Execute search
         response = self.client.search(
-            index=collection_name,
-            knn=knn_query,
-            size=top_k,
-            _source=["id"]
+            index=collection_name, knn=knn_query, size=top_k, _source=["id"]
         )
 
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -245,11 +220,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
             ids.append(hit["_source"]["id"])
             scores.append(hit["_score"])
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms)
 
     def hybrid_search(
         self,
@@ -257,7 +228,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """
         Hybrid search combining BM25 text search with kNN vector search.
@@ -270,26 +241,15 @@ class ElasticsearchAdapter(VectorDBAdapter):
         query = {
             "size": top_k,
             "query": {
-                "bool": {
-                    "should": [
-                        {
-                            "match": {
-                                "text": {
-                                    "query": query_text,
-                                    "boost": 1 - alpha
-                                }
-                            }
-                        }
-                    ]
-                }
+                "bool": {"should": [{"match": {"text": {"query": query_text, "boost": 1 - alpha}}}]}
             },
             "knn": {
                 "field": "embedding",
                 "query_vector": query_vector,
                 "k": top_k,
                 "num_candidates": self.num_candidates,
-                "boost": alpha
-            }
+                "boost": alpha,
+            },
         }
 
         response = self.client.search(index=collection_name, body=query)
@@ -310,7 +270,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
             dimensions=0,  # ES doesn't expose this directly
             index_size_bytes=index_stats["store"]["size_in_bytes"],
             build_time_seconds=self.build_times.get(collection_name, 0),
-            memory_usage_bytes=index_stats.get("segments", {}).get("memory_in_bytes", 0)
+            memory_usage_bytes=index_stats.get("segments", {}).get("memory_in_bytes", 0),
         )
 
     def delete_index(self, collection_name: str) -> None:
@@ -325,27 +285,19 @@ class ElasticsearchAdapter(VectorDBAdapter):
         for field, condition in filter_dict.items():
             if isinstance(condition, dict):
                 if "$eq" in condition:
-                    es_filter["bool"]["must"].append(
-                        {"term": {field: condition["$eq"]}}
-                    )
+                    es_filter["bool"]["must"].append({"term": {field: condition["$eq"]}})
                 elif "$in" in condition:
-                    es_filter["bool"]["must"].append(
-                        {"terms": {field: condition["$in"]}}
-                    )
+                    es_filter["bool"]["must"].append({"terms": {field: condition["$in"]}})
                 elif "$gte" in condition or "$lte" in condition:
                     range_query = {}
                     if "$gte" in condition:
                         range_query["gte"] = condition["$gte"]
                     if "$lte" in condition:
                         range_query["lte"] = condition["$lte"]
-                    es_filter["bool"]["must"].append(
-                        {"range": {field: range_query}}
-                    )
+                    es_filter["bool"]["must"].append({"range": {field: range_query}})
             else:
                 # Simple equality
-                es_filter["bool"]["must"].append(
-                    {"term": {field: condition}}
-                )
+                es_filter["bool"]["must"].append({"term": {field: condition}})
 
         return es_filter
 
@@ -354,10 +306,7 @@ class ElasticsearchAdapter(VectorDBAdapter):
     # =========================================================================
 
     def get_query_profile(
-        self,
-        collection_name: str,
-        query_vector: List[float],
-        top_k: int = 10
+        self, collection_name: str, query_vector: List[float], top_k: int = 10
     ) -> Dict[str, Any]:
         """
         Get query execution profile for root cause analysis.
@@ -370,16 +319,16 @@ class ElasticsearchAdapter(VectorDBAdapter):
                 "field": "embedding",
                 "query_vector": query_vector,
                 "k": top_k,
-                "num_candidates": self.num_candidates
+                "num_candidates": self.num_candidates,
             },
             size=top_k,
-            profile=True
+            profile=True,
         )
 
         return {
             "took_ms": response["took"],
             "profile": response.get("profile", {}),
-            "shards": response["_shards"]
+            "shards": response["_shards"],
         }
 
     def get_cluster_health(self) -> Dict[str, Any]:

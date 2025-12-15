@@ -167,10 +167,10 @@ def plot_recall_comparison(df: pd.DataFrame, output_dir: Path):
             ax.set_xlabel("")
             ax.set_ylabel("Recall")
             ax.set_ylim(0, 1)
-            ax.tick_params(axis='x', rotation=45)
+            ax.tick_params(axis="x", rotation=45)
 
     plt.tight_layout()
-    plt.savefig(output_dir / "recall_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "recall_comparison.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -186,20 +186,18 @@ def plot_latency_comparison(df: pd.DataFrame, output_dir: Path):
         return
 
     data = df[["database"] + available_cols].melt(
-        id_vars=["database"],
-        var_name="percentile",
-        value_name="latency_ms"
+        id_vars=["database"], var_name="percentile", value_name="latency_ms"
     )
 
     sns.barplot(data=data, x="database", y="latency_ms", hue="percentile", ax=ax, palette="rocket")
     ax.set_title("Query Latency by Database")
     ax.set_xlabel("")
     ax.set_ylabel("Latency (ms)")
-    ax.tick_params(axis='x', rotation=45)
+    ax.tick_params(axis="x", rotation=45)
     ax.legend(title="Percentile")
 
     plt.tight_layout()
-    plt.savefig(output_dir / "latency_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "latency_comparison.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -215,16 +213,19 @@ def plot_qps_comparison(df: pd.DataFrame, output_dir: Path):
     ax.set_title("Queries Per Second (QPS)")
     ax.set_xlabel("")
     ax.set_ylabel("QPS")
-    ax.tick_params(axis='x', rotation=45)
+    ax.tick_params(axis="x", rotation=45)
 
     # Add value labels
     for p in ax.patches:
-        ax.annotate(f'{p.get_height():.1f}',
-                   (p.get_x() + p.get_width() / 2., p.get_height()),
-                   ha='center', va='bottom')
+        ax.annotate(
+            f"{p.get_height():.1f}",
+            (p.get_x() + p.get_width() / 2.0, p.get_height()),
+            ha="center",
+            va="bottom",
+        )
 
     plt.tight_layout()
-    plt.savefig(output_dir / "qps_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "qps_comparison.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -240,10 +241,10 @@ def plot_cold_start_comparison(df: pd.DataFrame, output_dir: Path):
     ax.set_title("Cold Start Latency")
     ax.set_xlabel("")
     ax.set_ylabel("Time to First Query (ms)")
-    ax.tick_params(axis='x', rotation=45)
+    ax.tick_params(axis="x", rotation=45)
 
     plt.tight_layout()
-    plt.savefig(output_dir / "cold_start_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "cold_start_comparison.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -260,7 +261,7 @@ def plot_build_time_comparison(df: pd.DataFrame, output_dir: Path):
     axes[0].set_title("Index Build Time")
     axes[0].set_xlabel("")
     axes[0].set_ylabel("Time (seconds)")
-    axes[0].tick_params(axis='x', rotation=45)
+    axes[0].tick_params(axis="x", rotation=45)
 
     # Vectors per second
     if "vectors_per_second" in df.columns:
@@ -269,10 +270,10 @@ def plot_build_time_comparison(df: pd.DataFrame, output_dir: Path):
         axes[1].set_title("Index Build Throughput")
         axes[1].set_xlabel("")
         axes[1].set_ylabel("Vectors/Second")
-        axes[1].tick_params(axis='x', rotation=45)
+        axes[1].tick_params(axis="x", rotation=45)
 
     plt.tight_layout()
-    plt.savefig(output_dir / "build_time_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "build_time_comparison.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -288,20 +289,26 @@ def plot_pareto_frontier(df: pd.DataFrame, output_dir: Path):
     # Scatter plot
     colors = plt.cm.tab10(np.linspace(0, 1, len(data)))
     for idx, (_, row) in enumerate(data.iterrows()):
-        ax.scatter(row["latency_p50"], row["recall@10"],
-                  s=200, c=[colors[idx]], label=row["database"], alpha=0.7)
+        ax.scatter(
+            row["latency_p50"],
+            row["recall@10"],
+            s=200,
+            c=[colors[idx]],
+            label=row["database"],
+            alpha=0.7,
+        )
 
     ax.set_xlabel("Latency p50 (ms)")
     ax.set_ylabel("Recall@10")
     ax.set_title("Recall vs Latency Trade-off")
-    ax.legend(loc='lower right')
+    ax.legend(loc="lower right")
     ax.grid(True, alpha=0.3)
 
     # Ideal point annotation
-    ax.annotate("← Better", xy=(0.1, 0.95), xycoords='axes fraction', fontsize=12)
+    ax.annotate("← Better", xy=(0.1, 0.95), xycoords="axes fraction", fontsize=12)
 
     plt.tight_layout()
-    plt.savefig(output_dir / "pareto_frontier.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "pareto_frontier.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -309,10 +316,8 @@ def plot_pareto_frontier(df: pd.DataFrame, output_dir: Path):
 # NOVEL VISUALIZATIONS - Key differentiators for the paper
 # ============================================================================
 
-def plot_temporal_drift_curves(
-    drift_data: Dict[str, Dict[str, Any]],
-    output_dir: Path
-):
+
+def plot_temporal_drift_curves(drift_data: Dict[str, Dict[str, Any]], output_dir: Path):
     """
     Plot temporal drift degradation curves (NOVEL CONTRIBUTION).
 
@@ -359,22 +364,22 @@ def plot_temporal_drift_curves(
             ax.plot(
                 timestamps,
                 recall_curve,
-                marker='o',
+                marker="o",
                 linewidth=2,
                 markersize=6,
                 color=colors[db_idx],
-                label=db_name
+                label=db_name,
             )
 
         ax.set_xlabel("Time Step (Corpus Evolution)")
         ax.set_ylabel("Recall@10")
         ax.set_title(f"Recall Degradation - {pattern.replace('_', ' ').title()} Drift")
-        ax.legend(loc='lower left')
+        ax.legend(loc="lower left")
         ax.grid(True, alpha=0.3)
         ax.set_ylim(0, 1.05)
 
     plt.tight_layout()
-    plt.savefig(output_dir / "temporal_drift_curves.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "temporal_drift_curves.png", dpi=150, bbox_inches="tight")
     plt.close()
 
     # Also create a degradation rate comparison bar chart
@@ -398,22 +403,19 @@ def plot_temporal_drift_curves(
     for idx, pattern in enumerate(patterns):
         offset = (idx - len(patterns) / 2 + 0.5) * width
         ax.bar(
-            x + offset,
-            degradation_rates[pattern],
-            width,
-            label=pattern.replace('_', ' ').title()
+            x + offset, degradation_rates[pattern], width, label=pattern.replace("_", " ").title()
         )
 
     ax.set_xlabel("Database")
     ax.set_ylabel("Recall Degradation Rate (per timestamp)")
     ax.set_title("Recall Degradation Rate Comparison")
     ax.set_xticks(x)
-    ax.set_xticklabels(db_names, rotation=45, ha='right')
+    ax.set_xticklabels(db_names, rotation=45, ha="right")
     ax.legend()
-    ax.grid(True, alpha=0.3, axis='y')
+    ax.grid(True, alpha=0.3, axis="y")
 
     plt.tight_layout()
-    plt.savefig(output_dir / "drift_degradation_rates.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "drift_degradation_rates.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -438,14 +440,16 @@ def plot_cost_performance_pareto(df: pd.DataFrame, output_dir: Path):
     ax1 = axes[0]
 
     # Compute Pareto frontier
-    points = list(zip(data["recall@10"].tolist(), [-c for c in data["cost_per_million_queries"].tolist()]))
+    points = list(
+        zip(data["recall@10"].tolist(), [-c for c in data["cost_per_million_queries"].tolist()])
+    )
     pareto_indices = compute_pareto_frontier(points, maximize_x=True, maximize_y=True)
 
     colors = plt.cm.tab10(np.linspace(0, 1, len(data)))
 
     for idx, (_, row) in enumerate(data.iterrows()):
         is_pareto = idx in pareto_indices
-        marker = '*' if is_pareto else 'o'
+        marker = "*" if is_pareto else "o"
         size = 300 if is_pareto else 150
 
         ax1.scatter(
@@ -456,23 +460,23 @@ def plot_cost_performance_pareto(df: pd.DataFrame, output_dir: Path):
             marker=marker,
             label=row["database"],
             alpha=0.8,
-            edgecolors='black' if is_pareto else 'none',
-            linewidths=2 if is_pareto else 0
+            edgecolors="black" if is_pareto else "none",
+            linewidths=2 if is_pareto else 0,
         )
 
     ax1.set_xlabel("Cost ($/Million Queries)")
     ax1.set_ylabel("Recall@10")
     ax1.set_title("Cost vs Recall Pareto Frontier")
-    ax1.legend(loc='lower right')
+    ax1.legend(loc="lower right")
     ax1.grid(True, alpha=0.3)
 
     # Add annotation for Pareto optimal
     ax1.annotate(
         "★ = Pareto Optimal",
         xy=(0.02, 0.98),
-        xycoords='axes fraction',
+        xycoords="axes fraction",
         fontsize=10,
-        verticalalignment='top'
+        verticalalignment="top",
     )
 
     # Plot 2: Value Score (Recall*QPS / Cost)
@@ -484,28 +488,24 @@ def plot_cost_performance_pareto(df: pd.DataFrame, output_dir: Path):
 
     colors_sorted = [colors[data.index.get_loc(idx)] for idx in data_sorted.index]
 
-    bars = ax2.barh(
-        data_sorted["database"],
-        data_sorted["value_score"],
-        color=colors_sorted
-    )
+    bars = ax2.barh(data_sorted["database"], data_sorted["value_score"], color=colors_sorted)
 
     ax2.set_xlabel("Value Score (Recall × QPS / Cost)")
     ax2.set_title("Cost-Efficiency Value Score")
-    ax2.grid(True, alpha=0.3, axis='x')
+    ax2.grid(True, alpha=0.3, axis="x")
 
     # Add value labels
     for bar, val in zip(bars, data_sorted["value_score"]):
         ax2.text(
             bar.get_width() + 0.01 * data_sorted["value_score"].max(),
             bar.get_y() + bar.get_height() / 2,
-            f'{val:.2f}',
-            va='center',
-            fontsize=9
+            f"{val:.2f}",
+            va="center",
+            fontsize=9,
         )
 
     plt.tight_layout()
-    plt.savefig(output_dir / "cost_performance_pareto.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "cost_performance_pareto.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
@@ -515,8 +515,13 @@ def plot_operational_complexity_radar(df: pd.DataFrame, output_dir: Path):
 
     Visualizes multi-dimensional operational burden.
     """
-    ops_cols = ["ops_deployment", "ops_configuration", "ops_monitoring",
-                "ops_maintenance", "ops_documentation"]
+    ops_cols = [
+        "ops_deployment",
+        "ops_configuration",
+        "ops_monitoring",
+        "ops_maintenance",
+        "ops_documentation",
+    ]
 
     if not all(col in df.columns for col in ops_cols):
         print("No operational complexity data, skipping radar plot")
@@ -543,7 +548,7 @@ def plot_operational_complexity_radar(df: pd.DataFrame, output_dir: Path):
         values = [row[col] for col in ops_cols]
         values += values[:1]  # Complete the loop
 
-        ax.plot(angles, values, 'o-', linewidth=2, color=colors[idx], label=row["database"])
+        ax.plot(angles, values, "o-", linewidth=2, color=colors[idx], label=row["database"])
         ax.fill(angles, values, alpha=0.1, color=colors[idx])
 
     # Set category labels
@@ -553,20 +558,25 @@ def plot_operational_complexity_radar(df: pd.DataFrame, output_dir: Path):
     # Set radial limits
     ax.set_ylim(0, 100)
     ax.set_yticks([20, 40, 60, 80, 100])
-    ax.set_yticklabels(['20', '40', '60', '80', '100'], size=8)
+    ax.set_yticklabels(["20", "40", "60", "80", "100"], size=8)
 
     ax.set_title("Operational Complexity (Lower = Simpler)", size=14, pad=20)
-    ax.legend(loc='upper right', bbox_to_anchor=(1.3, 1.0))
+    ax.legend(loc="upper right", bbox_to_anchor=(1.3, 1.0))
 
     plt.tight_layout()
-    plt.savefig(output_dir / "operational_complexity_radar.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "operational_complexity_radar.png", dpi=150, bbox_inches="tight")
     plt.close()
 
     # Also create a stacked bar chart for team size recommendations
     fig, ax = plt.subplots(figsize=(12, 6))
 
     team_size_order = ["solo", "small", "medium", "large"]
-    team_size_colors = {"solo": "#2ecc71", "small": "#3498db", "medium": "#f39c12", "large": "#e74c3c"}
+    team_size_colors = {
+        "solo": "#2ecc71",
+        "small": "#3498db",
+        "medium": "#f39c12",
+        "large": "#e74c3c",
+    }
 
     if "ops_team_size" in df.columns:
         team_data = df[["database", "ops_overall", "ops_team_size"]].dropna()
@@ -575,22 +585,23 @@ def plot_operational_complexity_radar(df: pd.DataFrame, output_dir: Path):
         bars = ax.barh(
             team_data["database"],
             team_data["ops_overall"],
-            color=[team_size_colors.get(ts, "#95a5a6") for ts in team_data["ops_team_size"]]
+            color=[team_size_colors.get(ts, "#95a5a6") for ts in team_data["ops_team_size"]],
         )
 
         ax.set_xlabel("Overall Operational Complexity Score")
         ax.set_title("Operational Complexity by Database")
-        ax.grid(True, alpha=0.3, axis='x')
+        ax.grid(True, alpha=0.3, axis="x")
 
         # Add legend
         legend_elements = [
             Patch(facecolor=team_size_colors[ts], label=f"{ts.title()} Team")
-            for ts in team_size_order if ts in team_data["ops_team_size"].values
+            for ts in team_size_order
+            if ts in team_data["ops_team_size"].values
         ]
-        ax.legend(handles=legend_elements, loc='lower right')
+        ax.legend(handles=legend_elements, loc="lower right")
 
         plt.tight_layout()
-        plt.savefig(output_dir / "operational_complexity_bars.png", dpi=150, bbox_inches='tight')
+        plt.savefig(output_dir / "operational_complexity_bars.png", dpi=150, bbox_inches="tight")
         plt.close()
 
 
@@ -614,7 +625,9 @@ def plot_comprehensive_comparison(df: pd.DataFrame, output_dir: Path):
     if "ops_overall" in df.columns:
         metric_configs.append(("ops_overall", "Ops Complexity", False))
 
-    available_metrics = [(col, label, hib) for col, label, hib in metric_configs if col in df.columns]
+    available_metrics = [
+        (col, label, hib) for col, label, hib in metric_configs if col in df.columns
+    ]
 
     if len(available_metrics) < 2:
         return
@@ -629,28 +642,35 @@ def plot_comprehensive_comparison(df: pd.DataFrame, output_dir: Path):
         data = df[["database", col]].dropna()
         data_sorted = data.sort_values(col, ascending=not higher_is_better)
 
-        colors = ['#2ecc71' if i == 0 else '#3498db' for i in range(len(data_sorted))]
+        colors = ["#2ecc71" if i == 0 else "#3498db" for i in range(len(data_sorted))]
 
         bars = ax.barh(data_sorted["database"], data_sorted[col], color=colors)
         ax.set_xlabel(label)
         ax.set_title(f"{'↑' if higher_is_better else '↓'} {label}")
-        ax.grid(True, alpha=0.3, axis='x')
+        ax.grid(True, alpha=0.3, axis="x")
 
     # Hide unused subplots
     for idx in range(len(available_metrics), len(axes)):
         axes[idx].set_visible(False)
 
-    plt.suptitle("Comprehensive Database Comparison", fontsize=14, fontweight='bold')
+    plt.suptitle("Comprehensive Database Comparison", fontsize=14, fontweight="bold")
     plt.tight_layout()
-    plt.savefig(output_dir / "comprehensive_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "comprehensive_comparison.png", dpi=150, bbox_inches="tight")
     plt.close()
 
 
 def generate_latex_table(df: pd.DataFrame, output_dir: Path):
     """Generate LaTeX table for paper."""
     # Select key columns
-    cols = ["database", "recall@10", "latency_p50", "latency_p95", "qps",
-            "cold_start_mean_ms", "build_time_seconds"]
+    cols = [
+        "database",
+        "recall@10",
+        "latency_p50",
+        "latency_p95",
+        "qps",
+        "cold_start_mean_ms",
+        "build_time_seconds",
+    ]
     available_cols = [c for c in cols if c in df.columns]
 
     table_df = df[available_cols].copy()
@@ -663,21 +683,27 @@ def generate_latex_table(df: pd.DataFrame, output_dir: Path):
         "latency_p95": "Latency p95 (ms)",
         "qps": "QPS",
         "cold_start_mean_ms": "Cold Start (ms)",
-        "build_time_seconds": "Build Time (s)"
+        "build_time_seconds": "Build Time (s)",
     }
     table_df = table_df.rename(columns=rename_map)
 
     # Generate LaTeX
     latex = table_df.to_latex(index=False, float_format="%.2f", escape=False)
 
-    with open(output_dir / "results_table.tex", 'w') as f:
+    with open(output_dir / "results_table.tex", "w") as f:
         f.write(latex)
 
     print(f"LaTeX table saved to: {output_dir / 'results_table.tex'}")
 
     # Generate extended table with novel metrics
-    extended_cols = ["database", "recall@10", "latency_p50", "qps",
-                     "cost_per_million_queries", "ops_overall"]
+    extended_cols = [
+        "database",
+        "recall@10",
+        "latency_p50",
+        "qps",
+        "cost_per_million_queries",
+        "ops_overall",
+    ]
     available_extended = [c for c in extended_cols if c in df.columns]
 
     if len(available_extended) > 3:  # Has novel metrics
@@ -689,22 +715,20 @@ def generate_latex_table(df: pd.DataFrame, output_dir: Path):
             "latency_p50": "Latency (ms)",
             "qps": "QPS",
             "cost_per_million_queries": "\\$/M Queries",
-            "ops_overall": "Ops Score"
+            "ops_overall": "Ops Score",
         }
         extended_df = extended_df.rename(columns=extended_rename)
 
         latex_ext = extended_df.to_latex(index=False, float_format="%.2f", escape=False)
 
-        with open(output_dir / "results_table_extended.tex", 'w') as f:
+        with open(output_dir / "results_table_extended.tex", "w") as f:
             f.write(latex_ext)
 
         print(f"Extended LaTeX table saved to: {output_dir / 'results_table_extended.tex'}")
 
 
 def generate_summary_report(
-    df: pd.DataFrame,
-    drift_data: Dict[str, Dict[str, Any]],
-    output_dir: Path
+    df: pd.DataFrame, drift_data: Dict[str, Dict[str, Any]], output_dir: Path
 ):
     """Generate markdown summary report."""
     report = []
@@ -714,7 +738,9 @@ def generate_summary_report(
     report.append("## Overview\n")
     report.append(f"- **Databases tested:** {', '.join(df['database'].unique())}")
     report.append(f"- **Dataset:** {df['dataset'].iloc[0] if 'dataset' in df.columns else 'N/A'}")
-    report.append(f"- **Documents:** {df['num_documents'].iloc[0] if 'num_documents' in df.columns else 'N/A'}")
+    report.append(
+        f"- **Documents:** {df['num_documents'].iloc[0] if 'num_documents' in df.columns else 'N/A'}"
+    )
     report.append("")
 
     # Best performers
@@ -722,11 +748,15 @@ def generate_summary_report(
 
     if "recall@10" in df.columns:
         best_recall = df.loc[df["recall@10"].idxmax()]
-        report.append(f"- **Best Recall@10:** {best_recall['database']} ({best_recall['recall@10']:.4f})")
+        report.append(
+            f"- **Best Recall@10:** {best_recall['database']} ({best_recall['recall@10']:.4f})"
+        )
 
     if "latency_p50" in df.columns:
         best_latency = df.loc[df["latency_p50"].idxmin()]
-        report.append(f"- **Lowest Latency (p50):** {best_latency['database']} ({best_latency['latency_p50']:.2f} ms)")
+        report.append(
+            f"- **Lowest Latency (p50):** {best_latency['database']} ({best_latency['latency_p50']:.2f} ms)"
+        )
 
     if "qps" in df.columns:
         best_qps = df.loc[df["qps"].idxmax()]
@@ -734,23 +764,31 @@ def generate_summary_report(
 
     if "cold_start_mean_ms" in df.columns:
         best_cold = df.loc[df["cold_start_mean_ms"].idxmin()]
-        report.append(f"- **Fastest Cold Start:** {best_cold['database']} ({best_cold['cold_start_mean_ms']:.2f} ms)")
+        report.append(
+            f"- **Fastest Cold Start:** {best_cold['database']} ({best_cold['cold_start_mean_ms']:.2f} ms)"
+        )
 
     # Novel metrics
     if "cost_per_million_queries" in df.columns:
         best_cost = df.loc[df["cost_per_million_queries"].idxmin()]
-        report.append(f"- **Most Cost-Efficient:** {best_cost['database']} (${best_cost['cost_per_million_queries']:.2f}/M queries)")
+        report.append(
+            f"- **Most Cost-Efficient:** {best_cost['database']} (${best_cost['cost_per_million_queries']:.2f}/M queries)"
+        )
 
     if "ops_overall" in df.columns:
         simplest = df.loc[df["ops_overall"].idxmin()]
-        report.append(f"- **Simplest Operations:** {simplest['database']} (score: {simplest['ops_overall']:.0f})")
+        report.append(
+            f"- **Simplest Operations:** {simplest['database']} (score: {simplest['ops_overall']:.0f})"
+        )
 
     report.append("")
 
     # Temporal Drift Analysis (NOVEL)
     if drift_data:
         report.append("## Temporal Drift Analysis (Novel)\n")
-        report.append("This analysis measures how recall degrades as the corpus evolves over time.\n")
+        report.append(
+            "This analysis measures how recall degrades as the corpus evolves over time.\n"
+        )
 
         for db_name, patterns in drift_data.items():
             report.append(f"### {db_name}\n")
@@ -772,7 +810,13 @@ def generate_summary_report(
     # Cost Analysis (NOVEL)
     if "cost_per_million_queries" in df.columns:
         report.append("## Cost-Efficiency Analysis (Novel)\n")
-        cost_cols = ["database", "cost_per_million_queries", "queries_per_dollar", "recall@10", "qps"]
+        cost_cols = [
+            "database",
+            "cost_per_million_queries",
+            "queries_per_dollar",
+            "recall@10",
+            "qps",
+        ]
         available = [c for c in cost_cols if c in df.columns]
         if available:
             report.append(df[available].to_markdown(index=False))
@@ -782,8 +826,16 @@ def generate_summary_report(
     if "ops_overall" in df.columns:
         report.append("## Operational Complexity Analysis (Novel)\n")
         report.append("Lower scores indicate simpler operations.\n")
-        ops_cols = ["database", "ops_deployment", "ops_configuration", "ops_monitoring",
-                   "ops_maintenance", "ops_documentation", "ops_overall", "ops_team_size"]
+        ops_cols = [
+            "database",
+            "ops_deployment",
+            "ops_configuration",
+            "ops_monitoring",
+            "ops_maintenance",
+            "ops_documentation",
+            "ops_overall",
+            "ops_team_size",
+        ]
         available = [c for c in ops_cols if c in df.columns]
         if available:
             report.append(df[available].to_markdown(index=False))
@@ -793,7 +845,7 @@ def generate_summary_report(
     report.append("## Full Results\n")
     report.append(df.to_markdown(index=False))
 
-    with open(output_dir / "summary_report.md", 'w') as f:
+    with open(output_dir / "summary_report.md", "w") as f:
         f.write("\n".join(report))
 
     print(f"Summary report saved to: {output_dir / 'summary_report.md'}")
@@ -810,10 +862,14 @@ Examples:
 
   # Full analysis with all visualizations
   python scripts/analyze_results.py --results results/ --output analysis/
-        """
+        """,
     )
-    parser.add_argument("--results", type=str, required=True, help="Path to results file or directory")
-    parser.add_argument("--output", type=str, default="./analysis", help="Output directory for plots")
+    parser.add_argument(
+        "--results", type=str, required=True, help="Path to results file or directory"
+    )
+    parser.add_argument(
+        "--output", type=str, default="./analysis", help="Output directory for plots"
+    )
     args = parser.parse_args()
 
     # Load results
@@ -839,7 +895,7 @@ Examples:
 
     # Set style
     sns.set_theme(style="whitegrid")
-    plt.rcParams['figure.dpi'] = 150
+    plt.rcParams["figure.dpi"] = 150
 
     # Generate standard plots
     print("\nGenerating standard plots...")
@@ -875,7 +931,7 @@ Examples:
     for f in sorted(output_dir.glob("*")):
         print(f"  - {f.name}")
 
-    print(f"\nNovel contributions highlighted:")
+    print("\nNovel contributions highlighted:")
     print("  - temporal_drift_curves.png: Recall degradation over corpus evolution")
     print("  - drift_degradation_rates.png: Degradation rate comparison")
     print("  - cost_performance_pareto.png: Cost-efficiency Pareto frontier")

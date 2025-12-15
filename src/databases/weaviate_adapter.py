@@ -2,11 +2,12 @@
 
 import time
 from typing import Any, Dict, List, Optional
+
 import weaviate
-from weaviate.classes.config import Configure, Property, DataType, VectorDistances
+from weaviate.classes.config import Configure, DataType, Property, VectorDistances
 from weaviate.classes.query import MetadataQuery
 
-from .base import VectorDBAdapter, QueryResult, IndexStats
+from .base import IndexStats, QueryResult, VectorDBAdapter
 
 
 class WeaviateAdapter(VectorDBAdapter):
@@ -39,18 +40,14 @@ class WeaviateAdapter(VectorDBAdapter):
 
             self.client = weaviate.connect_to_weaviate_cloud(
                 cluster_url=url,
-                auth_credentials=weaviate.auth.AuthApiKey(api_key) if api_key else None
+                auth_credentials=weaviate.auth.AuthApiKey(api_key) if api_key else None,
             )
         elif deployment in ("local", "docker"):
             host = self.config.get("host", "localhost")
             port = self.config.get("port", 8080)
             grpc_port = self.config.get("grpc_port", 50051)
 
-            self.client = weaviate.connect_to_local(
-                host=host,
-                port=port,
-                grpc_port=grpc_port
-            )
+            self.client = weaviate.connect_to_local(host=host, port=port, grpc_port=grpc_port)
         else:
             raise ValueError(f"Unknown deployment type: {deployment}")
 
@@ -64,11 +61,7 @@ class WeaviateAdapter(VectorDBAdapter):
         self._is_connected = False
 
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create a new collection in Weaviate."""
         if not self._is_connected:
@@ -81,7 +74,7 @@ class WeaviateAdapter(VectorDBAdapter):
             "euclidean": VectorDistances.L2_SQUARED,
             "ip": VectorDistances.DOT,
             "inner_product": VectorDistances.DOT,
-            "dot": VectorDistances.DOT
+            "dot": VectorDistances.DOT,
         }
         weaviate_metric = metric_map.get(metric.lower(), VectorDistances.COSINE)
 
@@ -104,12 +97,12 @@ class WeaviateAdapter(VectorDBAdapter):
                 distance_metric=weaviate_metric,
                 ef_construction=ef_construction,
                 max_connections=max_connections,
-                ef=ef
+                ef=ef,
             ),
             properties=[
                 Property(name="doc_id", data_type=DataType.TEXT),
                 Property(name="text", data_type=DataType.TEXT),
-            ]
+            ],
         )
 
     def insert_vectors(
@@ -117,7 +110,7 @@ class WeaviateAdapter(VectorDBAdapter):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """Insert vectors into the collection."""
         if not self._is_connected:
@@ -134,13 +127,11 @@ class WeaviateAdapter(VectorDBAdapter):
 
                 properties = {
                     "doc_id": doc_id,
-                    **{k: v for k, v in meta.items() if isinstance(v, (str, int, float, bool))}
+                    **{k: v for k, v in meta.items() if isinstance(v, (str, int, float, bool))},
                 }
 
                 batch.add_object(
-                    properties=properties,
-                    vector=vector,
-                    uuid=weaviate.util.generate_uuid5(doc_id)
+                    properties=properties, vector=vector, uuid=weaviate.util.generate_uuid5(doc_id)
                 )
 
         return time.perf_counter() - start_time
@@ -150,7 +141,7 @@ class WeaviateAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """Search for similar vectors."""
         if not self._is_connected:
@@ -168,13 +159,11 @@ class WeaviateAdapter(VectorDBAdapter):
                 near_vector=query_vector,
                 limit=top_k,
                 filters=weaviate_filter,
-                return_metadata=MetadataQuery(distance=True)
+                return_metadata=MetadataQuery(distance=True),
             )
         else:
             results = collection.query.near_vector(
-                near_vector=query_vector,
-                limit=top_k,
-                return_metadata=MetadataQuery(distance=True)
+                near_vector=query_vector, limit=top_k, return_metadata=MetadataQuery(distance=True)
             )
 
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -191,12 +180,7 @@ class WeaviateAdapter(VectorDBAdapter):
             scores.append(1 - distance)  # Cosine similarity = 1 - cosine distance
             metadatas.append(obj.properties)
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms,
-            metadata=metadatas
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms, metadata=metadatas)
 
     def hybrid_search(
         self,
@@ -204,7 +188,7 @@ class WeaviateAdapter(VectorDBAdapter):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """
         Hybrid search combining dense and sparse (BM25) retrieval.
@@ -223,7 +207,7 @@ class WeaviateAdapter(VectorDBAdapter):
             vector=query_vector,
             alpha=alpha,  # 0 = pure BM25, 1 = pure vector
             limit=top_k,
-            return_metadata=MetadataQuery(distance=True, score=True)
+            return_metadata=MetadataQuery(distance=True, score=True),
         )
 
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -237,12 +221,7 @@ class WeaviateAdapter(VectorDBAdapter):
             scores.append(obj.metadata.score if obj.metadata else 0)
             metadatas.append(obj.properties)
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms,
-            metadata=metadatas
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms, metadata=metadatas)
 
     def get_index_stats(self, collection_name: str) -> IndexStats:
         """Get statistics about the collection."""
@@ -260,7 +239,7 @@ class WeaviateAdapter(VectorDBAdapter):
             dimensions=0,  # Not easily available
             index_size_bytes=0,
             build_time_seconds=0,
-            memory_usage_bytes=0
+            memory_usage_bytes=0,
         )
 
     def delete_index(self, collection_name: str) -> None:
@@ -313,7 +292,7 @@ class WeaviateAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         filter: Dict[str, Any],
-        top_k: int = 10
+        top_k: int = 10,
     ) -> QueryResult:
         """Search with metadata filtering."""
         return self.search(collection_name, query_vector, top_k, filter=filter)

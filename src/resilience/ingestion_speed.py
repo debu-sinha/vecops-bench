@@ -8,12 +8,14 @@ Optimized for 100M scale with streaming/batching.
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, Generator, List, Optional, Tuple
+
 import numpy as np
 
 
 @dataclass
 class IngestionResult:
     """Results from ingestion benchmark."""
+
     database: str
     total_vectors: int
     total_seconds: float
@@ -34,15 +36,12 @@ class IngestionResult:
             "batch_size": self.batch_size,
             "time_to_100m_estimate_hours": self.time_to_100m_estimate_hours,
             "memory_delta_mb": self.memory_delta_mb,
-            "index_size_bytes": self.index_size_bytes
+            "index_size_bytes": self.index_size_bytes,
         }
 
 
 def vector_batch_generator(
-    total_vectors: int,
-    dimensions: int,
-    batch_size: int = 10000,
-    seed: int = 42
+    total_vectors: int, dimensions: int, batch_size: int = 10000, seed: int = 42
 ) -> Generator[Tuple[List[str], List[List[float]]], None, None]:
     """
     Generator that yields batches of random vectors.
@@ -79,7 +78,7 @@ def measure_ingestion_speed(
     total_vectors: int,
     dimensions: int,
     batch_size: int = 10000,
-    create_index_first: bool = True
+    create_index_first: bool = True,
 ) -> IngestionResult:
     """
     Measure ingestion speed with streaming batches.
@@ -101,6 +100,7 @@ def measure_ingestion_speed(
         IngestionResult with timing and throughput
     """
     import psutil
+
     process = psutil.Process()
 
     # Record initial memory
@@ -146,13 +146,12 @@ def measure_ingestion_speed(
         batch_size=batch_size,
         time_to_100m_estimate_hours=time_to_100m,
         memory_delta_mb=(mem_after - mem_before) / (1024 * 1024),
-        index_size_bytes=stats.index_size_bytes
+        index_size_bytes=stats.index_size_bytes,
     )
 
 
 def stream_dataset_from_disk(
-    file_path: str,
-    batch_size: int = 10000
+    file_path: str, batch_size: int = 10000
 ) -> Generator[Tuple[List[str], List[List[float]]], None, None]:
     """
     Stream pre-embedded vectors from disk (Parquet/HDF5).
@@ -175,7 +174,7 @@ def stream_from_huggingface(
     embedding_column: str = "embedding",
     id_column: str = "id",
     batch_size: int = 10000,
-    max_vectors: Optional[int] = None
+    max_vectors: Optional[int] = None,
 ) -> Generator[Tuple[List[str], List[List[float]]], None, None]:
     """
     Stream embeddings from HuggingFace dataset.
@@ -215,12 +214,12 @@ def optimal_batch_size_for_db(db_name: str) -> int:
     Based on empirical testing and documentation.
     """
     optimal_sizes = {
-        "milvus": 10000,     # Milvus handles large batches well
-        "qdrant": 5000,      # Qdrant prefers medium batches
-        "pgvector": 1000,    # PostgreSQL has transaction overhead
-        "chroma": 5000,      # Chroma is memory-constrained
-        "weaviate": 10000,   # Weaviate optimized for batches
+        "milvus": 10000,  # Milvus handles large batches well
+        "qdrant": 5000,  # Qdrant prefers medium batches
+        "pgvector": 1000,  # PostgreSQL has transaction overhead
+        "chroma": 5000,  # Chroma is memory-constrained
+        "weaviate": 10000,  # Weaviate optimized for batches
         "elasticsearch": 5000,
-        "faiss": 50000,      # In-memory, can handle large batches
+        "faiss": 50000,  # In-memory, can handle large batches
     }
     return optimal_sizes.get(db_name.lower(), 5000)

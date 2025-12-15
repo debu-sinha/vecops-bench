@@ -5,11 +5,12 @@ Measures the time from kill -9 (ungraceful termination) to API returning 200 OK.
 This simulates real-world crash scenarios and tests database durability.
 """
 
-import subprocess
 import socket
+import subprocess
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
 import numpy as np
 import requests
 
@@ -17,6 +18,7 @@ import requests
 @dataclass
 class CrashRecoveryResult:
     """Results from crash recovery measurement."""
+
     database: str
     mean_ms: float
     std_ms: float
@@ -42,7 +44,7 @@ class CrashRecoveryResult:
             "num_trials": len(self.trials),
             "trials": self.trials,
             "data_integrity_verified": self.data_integrity_verified,
-            "methodology": self.methodology
+            "methodology": self.methodology,
         }
 
 
@@ -72,19 +74,13 @@ def check_tcp_port(host: str, port: int, timeout: float = 1.0) -> bool:
 def check_http_endpoint(host: str, port: int, path: str, timeout: float = 1.0) -> bool:
     """Check if an HTTP endpoint returns 200."""
     try:
-        response = requests.get(
-            f"http://{host}:{port}{path}",
-            timeout=timeout
-        )
+        response = requests.get(f"http://{host}:{port}{path}", timeout=timeout)
         return response.status_code == 200
     except Exception:
         return False
 
 
-def wait_for_api_ready(
-    db_name: str,
-    timeout_seconds: float = 120
-) -> float:
+def wait_for_api_ready(db_name: str, timeout_seconds: float = 120) -> float:
     """
     Wait for database API to be ready after restart.
 
@@ -115,19 +111,13 @@ def wait_for_api_ready(
 def kill_container(container_name: str) -> None:
     """Kill container with SIGKILL (ungraceful termination)."""
     subprocess.run(
-        ["docker", "kill", "--signal=KILL", container_name],
-        capture_output=True,
-        check=True
+        ["docker", "kill", "--signal=KILL", container_name], capture_output=True, check=True
     )
 
 
 def start_container(container_name: str) -> None:
     """Start a stopped container."""
-    subprocess.run(
-        ["docker", "start", container_name],
-        capture_output=True,
-        check=True
-    )
+    subprocess.run(["docker", "start", container_name], capture_output=True, check=True)
 
 
 def verify_data_integrity(
@@ -135,7 +125,7 @@ def verify_data_integrity(
     collection_name: str,
     expected_count: int,
     sample_query: List[float],
-    pre_crash_results: List[str] = None
+    pre_crash_results: List[str] = None,
 ) -> dict:
     """
     Verify data integrity after crash recovery.
@@ -154,7 +144,7 @@ def verify_data_integrity(
         "results_match": None,
         "actual_count": 0,
         "expected_count": expected_count,
-        "error": None
+        "error": None,
     }
 
     try:
@@ -185,7 +175,7 @@ def verify_data_integrity_bool(
     collection_name: str,
     expected_count: int,
     sample_query: List[float],
-    pre_crash_results: List[str] = None
+    pre_crash_results: List[str] = None,
 ) -> bool:
     """Backward-compatible bool version of verify_data_integrity."""
     result = verify_data_integrity(
@@ -201,7 +191,7 @@ def measure_crash_recovery(
     query_vector: List[float],
     expected_vector_count: int,
     num_trials: int = 5,
-    timeout_seconds: float = 120
+    timeout_seconds: float = 120,
 ) -> CrashRecoveryResult:
     """
     Measure crash recovery time.
@@ -272,8 +262,7 @@ def measure_crash_recovery(
 
             # Verify data integrity with pre-crash comparison
             integrity_result = verify_data_integrity(
-                adapter, collection_name, expected_vector_count,
-                query_vector, pre_crash_results
+                adapter, collection_name, expected_vector_count, query_vector, pre_crash_results
             )
             integrity_ok = integrity_result["count_ok"] and integrity_result["query_ok"]
             integrity_checks.append(integrity_ok)
@@ -302,16 +291,12 @@ def measure_crash_recovery(
         p95_ms=float(np.percentile(times_np, 95)),
         p99_ms=float(np.percentile(times_np, 99)),
         trials=times,
-        data_integrity_verified=all(integrity_checks)
+        data_integrity_verified=all(integrity_checks),
     )
 
 
 def measure_graceful_shutdown_recovery(
-    db_name: str,
-    adapter,
-    collection_name: str,
-    query_vector: List[float],
-    num_trials: int = 5
+    db_name: str, adapter, collection_name: str, query_vector: List[float], num_trials: int = 5
 ) -> CrashRecoveryResult:
     """
     Measure recovery time after graceful shutdown (docker stop).
@@ -322,11 +307,7 @@ def measure_graceful_shutdown_recovery(
 
     for _ in range(num_trials):
         # Graceful stop
-        subprocess.run(
-            ["docker", "stop", db_name],
-            capture_output=True,
-            check=True
-        )
+        subprocess.run(["docker", "stop", db_name], capture_output=True, check=True)
 
         try:
             adapter.disconnect()
@@ -356,5 +337,5 @@ def measure_graceful_shutdown_recovery(
         p99_ms=float(np.percentile(times_np, 99)),
         trials=times,
         data_integrity_verified=True,  # Graceful shutdown should preserve data
-        methodology="graceful_shutdown"
+        methodology="graceful_shutdown",
     )

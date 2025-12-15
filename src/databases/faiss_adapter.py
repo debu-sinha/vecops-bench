@@ -13,6 +13,7 @@ Faiss is NOT a database - it's a library. This baseline shows:
 
 import time
 from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 try:
@@ -20,7 +21,7 @@ try:
 except ImportError:
     raise ImportError("faiss-cpu not installed. Run: pip install faiss-cpu")
 
-from .base import VectorDBAdapter, QueryResult, IndexStats
+from .base import IndexStats, QueryResult, VectorDBAdapter
 
 
 class FaissAdapter(VectorDBAdapter):
@@ -60,11 +61,7 @@ class FaissAdapter(VectorDBAdapter):
         self._is_connected = False
 
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create a Faiss HNSW index."""
         self.dimensions[collection_name] = dimensions
@@ -96,13 +93,13 @@ class FaissAdapter(VectorDBAdapter):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """Insert vectors into Faiss index."""
         start_time = time.perf_counter()
 
         index = self.indices[collection_name]
-        vectors_np = np.array(vectors, dtype='float32')
+        vectors_np = np.array(vectors, dtype="float32")
 
         # Normalize for cosine similarity
         faiss.normalize_L2(vectors_np)
@@ -110,7 +107,7 @@ class FaissAdapter(VectorDBAdapter):
         # Create sequential integer IDs (Faiss requires int64)
         # CRITICAL: Use next_int_id to ensure unique IDs across batches
         start_id = self.next_int_id[collection_name]
-        int_ids = np.arange(start_id, start_id + len(ids), dtype='int64')
+        int_ids = np.arange(start_id, start_id + len(ids), dtype="int64")
         self.next_int_id[collection_name] = start_id + len(ids)
 
         # Store mapping from int ID to string ID
@@ -119,7 +116,7 @@ class FaissAdapter(VectorDBAdapter):
 
         # Handle training for IVF (check the base index inside IndexIDMap)
         base_index = index.index if isinstance(index, faiss.IndexIDMap) else index
-        if hasattr(base_index, 'is_trained') and not base_index.is_trained:
+        if hasattr(base_index, "is_trained") and not base_index.is_trained:
             base_index.train(vectors_np)
 
         # Add vectors with IDs
@@ -135,7 +132,7 @@ class FaissAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """
         Search for similar vectors.
@@ -152,7 +149,7 @@ class FaissAdapter(VectorDBAdapter):
         id_map = self.id_maps[collection_name]
 
         # Prepare query
-        query_np = np.array([query_vector], dtype='float32')
+        query_np = np.array([query_vector], dtype="float32")
         faiss.normalize_L2(query_np)
 
         # Search
@@ -169,11 +166,7 @@ class FaissAdapter(VectorDBAdapter):
                 # Convert L2 distance to similarity score
                 result_scores.append(float(1 / (1 + dist)))
 
-        return QueryResult(
-            ids=result_ids,
-            scores=result_scores,
-            latency_ms=latency_ms
-        )
+        return QueryResult(ids=result_ids, scores=result_scores, latency_ms=latency_ms)
 
     def hybrid_search(
         self,
@@ -181,7 +174,7 @@ class FaissAdapter(VectorDBAdapter):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """Faiss doesn't support hybrid search - pure vector only."""
         # Fall back to pure vector search
@@ -196,7 +189,7 @@ class FaissAdapter(VectorDBAdapter):
             dimensions=self.dimensions.get(collection_name, 0),
             index_size_bytes=self._estimate_index_size(index),
             build_time_seconds=self.build_times.get(collection_name, 0),
-            memory_usage_bytes=self._estimate_index_size(index)
+            memory_usage_bytes=self._estimate_index_size(index),
         )
 
     def delete_index(self, collection_name: str) -> None:
@@ -214,7 +207,7 @@ class FaissAdapter(VectorDBAdapter):
         """Estimate index size in bytes."""
         # HNSW: vectors + graph structure
         # Rough estimate: vectors * dims * 4 bytes * 2 (for graph overhead)
-        if hasattr(index, 'ntotal') and hasattr(index, 'd'):
+        if hasattr(index, "ntotal") and hasattr(index, "d"):
             return int(index.ntotal * index.d * 4 * 2)
         return 0
 
@@ -233,7 +226,7 @@ class FaissAdapter(VectorDBAdapter):
             "ntotal": index.ntotal,
         }
 
-        if hasattr(base_index, 'hnsw'):
+        if hasattr(base_index, "hnsw"):
             params["M"] = self.M
             params["efConstruction"] = base_index.hnsw.efConstruction
             params["efSearch"] = base_index.hnsw.efSearch
@@ -245,7 +238,7 @@ class FaissAdapter(VectorDBAdapter):
         index = self.indices[collection_name]
         # Handle IndexIDMap wrapper
         base_index = index.index if isinstance(index, faiss.IndexIDMap) else index
-        if hasattr(base_index, 'hnsw'):
+        if hasattr(base_index, "hnsw"):
             base_index.hnsw.efSearch = ef_search
 
     def benchmark_recall_vs_speed(
@@ -253,7 +246,7 @@ class FaissAdapter(VectorDBAdapter):
         collection_name: str,
         query_vectors: List[List[float]],
         ground_truth: List[List[str]],
-        ef_values: List[int] = [16, 32, 64, 128, 256, 512]
+        ef_values: List[int] = [16, 32, 64, 128, 256, 512],
     ) -> Dict[str, List[Dict[str, float]]]:
         """
         Benchmark recall vs speed tradeoff by varying ef_search.
@@ -278,12 +271,14 @@ class FaissAdapter(VectorDBAdapter):
                 recall = len(retrieved & relevant) / len(relevant) if relevant else 0
                 recalls.append(recall)
 
-            results.append({
-                "ef_search": ef,
-                "mean_latency_ms": np.mean(latencies),
-                "p99_latency_ms": np.percentile(latencies, 99),
-                "mean_recall": np.mean(recalls),
-                "qps": 1000 / np.mean(latencies)
-            })
+            results.append(
+                {
+                    "ef_search": ef,
+                    "mean_latency_ms": np.mean(latencies),
+                    "p99_latency_ms": np.percentile(latencies, 99),
+                    "mean_recall": np.mean(recalls),
+                    "qps": 1000 / np.mean(latencies),
+                }
+            )
 
         return {"recall_speed_tradeoff": results}

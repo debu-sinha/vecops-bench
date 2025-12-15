@@ -1,12 +1,12 @@
 """Dataset loaders for BEIR and MTEB benchmarks."""
 
-import os
-import json
 import hashlib
+import json
+import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from tqdm import tqdm
@@ -15,6 +15,7 @@ from tqdm import tqdm
 @dataclass
 class Document:
     """Represents a document in the corpus."""
+
     doc_id: str
     text: str
     title: Optional[str] = None
@@ -24,6 +25,7 @@ class Document:
 @dataclass
 class Query:
     """Represents a query with relevance judgments."""
+
     query_id: str
     text: str
     relevant_docs: List[str] = field(default_factory=list)
@@ -33,6 +35,7 @@ class Query:
 @dataclass
 class EmbeddedDataset:
     """Dataset with pre-computed embeddings."""
+
     name: str
     documents: List[Document]
     queries: List[Query]
@@ -42,10 +45,12 @@ class EmbeddedDataset:
     embedding_dim: int
 
     def __post_init__(self):
-        assert len(self.documents) == len(self.doc_embeddings), \
-            f"Document count mismatch: {len(self.documents)} vs {len(self.doc_embeddings)}"
-        assert len(self.queries) == len(self.query_embeddings), \
-            f"Query count mismatch: {len(self.queries)} vs {len(self.query_embeddings)}"
+        assert len(self.documents) == len(
+            self.doc_embeddings
+        ), f"Document count mismatch: {len(self.documents)} vs {len(self.doc_embeddings)}"
+        assert len(self.queries) == len(
+            self.query_embeddings
+        ), f"Query count mismatch: {len(self.queries)} vs {len(self.query_embeddings)}"
 
     def get_doc_id_to_idx(self) -> Dict[str, int]:
         """Get mapping from doc_id to index."""
@@ -55,7 +60,9 @@ class EmbeddedDataset:
         """Get mapping from query_id to index."""
         return {q.query_id: idx for idx, q in enumerate(self.queries)}
 
-    def sample(self, num_docs: Optional[int] = None, num_queries: Optional[int] = None) -> 'EmbeddedDataset':
+    def sample(
+        self, num_docs: Optional[int] = None, num_queries: Optional[int] = None
+    ) -> "EmbeddedDataset":
         """Return a sampled subset of the dataset."""
         doc_indices = np.arange(len(self.documents))
         query_indices = np.arange(len(self.queries))
@@ -80,12 +87,14 @@ class EmbeddedDataset:
             # Keep query only if it has at least one relevant doc in sampled set
             relevant_in_sample = [d for d in query.relevant_docs if d in sampled_doc_ids]
             if relevant_in_sample:
-                sampled_queries.append(Query(
-                    query_id=query.query_id,
-                    text=query.text,
-                    relevant_docs=relevant_in_sample,
-                    metadata=query.metadata
-                ))
+                sampled_queries.append(
+                    Query(
+                        query_id=query.query_id,
+                        text=query.text,
+                        relevant_docs=relevant_in_sample,
+                        metadata=query.metadata,
+                    )
+                )
                 sampled_query_indices.append(idx)
 
         sampled_query_embeddings = self.query_embeddings[sampled_query_indices]
@@ -97,7 +106,7 @@ class EmbeddedDataset:
             doc_embeddings=sampled_doc_embeddings,
             query_embeddings=sampled_query_embeddings,
             embedding_model=self.embedding_model,
-            embedding_dim=self.embedding_dim
+            embedding_dim=self.embedding_dim,
         )
 
 
@@ -119,7 +128,7 @@ class DatasetLoader(ABC):
         queries: List[Query],
         embedding_model: str = "sentence-transformers/all-mpnet-base-v2",
         batch_size: int = 32,
-        cache: bool = True
+        cache: bool = True,
     ) -> EmbeddedDataset:
         """Embed documents and queries using sentence-transformers."""
         from sentence_transformers import SentenceTransformer
@@ -135,10 +144,10 @@ class DatasetLoader(ABC):
                 name=cache_key,
                 documents=documents,
                 queries=queries,
-                doc_embeddings=data['doc_embeddings'],
-                query_embeddings=data['query_embeddings'],
+                doc_embeddings=data["doc_embeddings"],
+                query_embeddings=data["query_embeddings"],
                 embedding_model=embedding_model,
-                embedding_dim=data['doc_embeddings'].shape[1]
+                embedding_dim=data["doc_embeddings"].shape[1],
             )
 
         print(f"Loading embedding model: {embedding_model}")
@@ -148,30 +157,20 @@ class DatasetLoader(ABC):
         print(f"Embedding {len(documents)} documents...")
         doc_texts = [doc.text for doc in documents]
         doc_embeddings = model.encode(
-            doc_texts,
-            batch_size=batch_size,
-            show_progress_bar=True,
-            convert_to_numpy=True
+            doc_texts, batch_size=batch_size, show_progress_bar=True, convert_to_numpy=True
         )
 
         # Embed queries
         print(f"Embedding {len(queries)} queries...")
         query_texts = [q.text for q in queries]
         query_embeddings = model.encode(
-            query_texts,
-            batch_size=batch_size,
-            show_progress_bar=True,
-            convert_to_numpy=True
+            query_texts, batch_size=batch_size, show_progress_bar=True, convert_to_numpy=True
         )
 
         # Cache embeddings
         if cache:
             print(f"Caching embeddings to: {cache_path}")
-            np.savez(
-                cache_path,
-                doc_embeddings=doc_embeddings,
-                query_embeddings=query_embeddings
-            )
+            np.savez(cache_path, doc_embeddings=doc_embeddings, query_embeddings=query_embeddings)
 
         return EmbeddedDataset(
             name=cache_key,
@@ -180,14 +179,11 @@ class DatasetLoader(ABC):
             doc_embeddings=doc_embeddings,
             query_embeddings=query_embeddings,
             embedding_model=embedding_model,
-            embedding_dim=doc_embeddings.shape[1]
+            embedding_dim=doc_embeddings.shape[1],
         )
 
     def _get_cache_key(
-        self,
-        documents: List[Document],
-        queries: List[Query],
-        embedding_model: str
+        self, documents: List[Document], queries: List[Query], embedding_model: str
     ) -> str:
         """Generate cache key based on dataset content and model."""
         content = f"{len(documents)}_{len(queries)}_{embedding_model}"
@@ -201,9 +197,20 @@ class BEIRLoader(DatasetLoader):
     """Loader for BEIR benchmark datasets."""
 
     AVAILABLE_DATASETS = [
-        "msmarco", "trec-covid", "nfcorpus", "nq", "hotpotqa",
-        "fiqa", "arguana", "webis-touche2020", "quora", "dbpedia-entity",
-        "scidocs", "fever", "climate-fever", "scifact"
+        "msmarco",
+        "trec-covid",
+        "nfcorpus",
+        "nq",
+        "hotpotqa",
+        "fiqa",
+        "arguana",
+        "webis-touche2020",
+        "quora",
+        "dbpedia-entity",
+        "scidocs",
+        "fever",
+        "climate-fever",
+        "scifact",
     ]
 
     def load(
@@ -211,15 +218,16 @@ class BEIRLoader(DatasetLoader):
         dataset_name: str,
         split: str = "test",
         max_docs: Optional[int] = None,
-        max_queries: Optional[int] = None
+        max_queries: Optional[int] = None,
     ) -> Tuple[List[Document], List[Query]]:
         """Load a BEIR dataset."""
         from beir import util
         from beir.datasets.data_loader import GenericDataLoader
 
         if dataset_name not in self.AVAILABLE_DATASETS:
-            raise ValueError(f"Unknown BEIR dataset: {dataset_name}. "
-                           f"Available: {self.AVAILABLE_DATASETS}")
+            raise ValueError(
+                f"Unknown BEIR dataset: {dataset_name}. " f"Available: {self.AVAILABLE_DATASETS}"
+            )
 
         # Download dataset
         data_path = self.cache_dir / "beir" / dataset_name
@@ -234,12 +242,14 @@ class BEIRLoader(DatasetLoader):
         # Convert to our format
         documents = []
         for doc_id, doc_data in corpus.items():
-            documents.append(Document(
-                doc_id=doc_id,
-                text=doc_data.get("text", ""),
-                title=doc_data.get("title"),
-                metadata={"source": "beir", "dataset": dataset_name}
-            ))
+            documents.append(
+                Document(
+                    doc_id=doc_id,
+                    text=doc_data.get("text", ""),
+                    title=doc_data.get("title"),
+                    metadata={"source": "beir", "dataset": dataset_name},
+                )
+            )
             if max_docs and len(documents) >= max_docs:
                 break
 
@@ -250,16 +260,19 @@ class BEIRLoader(DatasetLoader):
         for query_id, query_text in queries_raw.items():
             if query_id in qrels:
                 relevant_docs = [
-                    doc_id for doc_id, score in qrels[query_id].items()
+                    doc_id
+                    for doc_id, score in qrels[query_id].items()
                     if score > 0 and doc_id in doc_id_set
                 ]
                 if relevant_docs:  # Only include queries with relevant docs
-                    queries.append(Query(
-                        query_id=query_id,
-                        text=query_text,
-                        relevant_docs=relevant_docs,
-                        metadata={"source": "beir", "dataset": dataset_name}
-                    ))
+                    queries.append(
+                        Query(
+                            query_id=query_id,
+                            text=query_text,
+                            relevant_docs=relevant_docs,
+                            metadata={"source": "beir", "dataset": dataset_name},
+                        )
+                    )
             if max_queries and len(queries) >= max_queries:
                 break
 
@@ -271,10 +284,21 @@ class MTEBLoader(DatasetLoader):
     """Loader for MTEB retrieval tasks."""
 
     RETRIEVAL_TASKS = [
-        "ArguAna", "ClimateFEVER", "CQADupstackRetrieval", "DBPedia",
-        "FEVER", "FiQA2018", "HotpotQA", "MSMARCO", "NFCorpus",
-        "NQ", "QuoraRetrieval", "SCIDOCS", "SciFact", "Touche2020",
-        "TRECCOVID"
+        "ArguAna",
+        "ClimateFEVER",
+        "CQADupstackRetrieval",
+        "DBPedia",
+        "FEVER",
+        "FiQA2018",
+        "HotpotQA",
+        "MSMARCO",
+        "NFCorpus",
+        "NQ",
+        "QuoraRetrieval",
+        "SCIDOCS",
+        "SciFact",
+        "Touche2020",
+        "TRECCOVID",
     ]
 
     def load(
@@ -282,10 +306,11 @@ class MTEBLoader(DatasetLoader):
         dataset_name: str,
         split: str = "test",
         max_docs: Optional[int] = None,
-        max_queries: Optional[int] = None
+        max_queries: Optional[int] = None,
     ) -> Tuple[List[Document], List[Query]]:
         """Load an MTEB retrieval dataset."""
         from mteb import MTEB
+
         from datasets import load_dataset as hf_load_dataset
 
         # MTEB uses different naming conventions
@@ -298,8 +323,12 @@ class MTEBLoader(DatasetLoader):
                 corpus_data = hf_load_dataset("mteb/msmarco", "corpus", split="corpus")
                 queries_data = hf_load_dataset("mteb/msmarco", "queries", split="queries")
             else:
-                corpus_data = hf_load_dataset(f"mteb/{dataset_name.lower()}", "corpus", split="corpus")
-                queries_data = hf_load_dataset(f"mteb/{dataset_name.lower()}", "queries", split="queries")
+                corpus_data = hf_load_dataset(
+                    f"mteb/{dataset_name.lower()}", "corpus", split="corpus"
+                )
+                queries_data = hf_load_dataset(
+                    f"mteb/{dataset_name.lower()}", "queries", split="queries"
+                )
         except Exception as e:
             print(f"Failed to load MTEB dataset {dataset_name}: {e}")
             print("Falling back to BEIR loader...")
@@ -309,24 +338,28 @@ class MTEBLoader(DatasetLoader):
         # Convert corpus
         documents = []
         for item in corpus_data:
-            documents.append(Document(
-                doc_id=str(item.get("_id", item.get("id", len(documents)))),
-                text=item.get("text", ""),
-                title=item.get("title"),
-                metadata={"source": "mteb", "dataset": dataset_name}
-            ))
+            documents.append(
+                Document(
+                    doc_id=str(item.get("_id", item.get("id", len(documents)))),
+                    text=item.get("text", ""),
+                    title=item.get("title"),
+                    metadata={"source": "mteb", "dataset": dataset_name},
+                )
+            )
             if max_docs and len(documents) >= max_docs:
                 break
 
         # Convert queries (simplified - may need qrels loading)
         queries = []
         for item in queries_data:
-            queries.append(Query(
-                query_id=str(item.get("_id", item.get("id", len(queries)))),
-                text=item.get("text", ""),
-                relevant_docs=[],  # Would need qrels
-                metadata={"source": "mteb", "dataset": dataset_name}
-            ))
+            queries.append(
+                Query(
+                    query_id=str(item.get("_id", item.get("id", len(queries)))),
+                    text=item.get("text", ""),
+                    relevant_docs=[],  # Would need qrels
+                    metadata={"source": "mteb", "dataset": dataset_name},
+                )
+            )
             if max_queries and len(queries) >= max_queries:
                 break
 
@@ -342,7 +375,7 @@ def load_dataset(
     max_queries: Optional[int] = None,
     embed: bool = True,
     embedding_model: str = "sentence-transformers/all-mpnet-base-v2",
-    cache_dir: str = "./data/cache"
+    cache_dir: str = "./data/cache",
 ) -> EmbeddedDataset:
     """
     Convenience function to load and embed a dataset.
@@ -367,20 +400,10 @@ def load_dataset(
     else:
         raise ValueError(f"Unknown source: {source}. Use 'beir' or 'mteb'")
 
-    documents, queries = loader.load(
-        name,
-        split=split,
-        max_docs=max_docs,
-        max_queries=max_queries
-    )
+    documents, queries = loader.load(name, split=split, max_docs=max_docs, max_queries=max_queries)
 
     if embed:
-        return loader.embed(
-            documents,
-            queries,
-            embedding_model=embedding_model,
-            cache=True
-        )
+        return loader.embed(documents, queries, embedding_model=embedding_model, cache=True)
     else:
         # Return with empty embeddings
         return EmbeddedDataset(
@@ -390,5 +413,5 @@ def load_dataset(
             doc_embeddings=np.array([]),
             query_embeddings=np.array([]),
             embedding_model="",
-            embedding_dim=0
+            embedding_dim=0,
         )

@@ -14,57 +14,59 @@ Dimensions:
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class DeploymentMethod(Enum):
     """Supported deployment methods."""
+
     MANAGED_CLOUD = "managed_cloud"  # Fully managed SaaS
     DOCKER_SINGLE = "docker_single"  # Single Docker container
     DOCKER_COMPOSE = "docker_compose"  # Multi-container Docker
-    KUBERNETES = "kubernetes"        # K8s deployment
-    BINARY = "binary"               # Direct binary installation
-    EMBEDDED = "embedded"           # In-process library
+    KUBERNETES = "kubernetes"  # K8s deployment
+    BINARY = "binary"  # Direct binary installation
+    EMBEDDED = "embedded"  # In-process library
 
 
 @dataclass
 class OperationalMetrics:
     """Raw operational metrics for a database."""
+
     # Deployment
     deployment_methods: List[DeploymentMethod]
-    min_deployment_steps: int        # Minimum steps to get running
-    has_managed_option: bool         # SaaS/managed service available
-    docker_image_size_mb: float      # Docker image size
+    min_deployment_steps: int  # Minimum steps to get running
+    has_managed_option: bool  # SaaS/managed service available
+    docker_image_size_mb: float  # Docker image size
 
     # Configuration
-    required_config_params: int      # Params that MUST be set
-    optional_config_params: int      # Optional tuning parameters
-    has_sensible_defaults: bool      # Works well out of box
+    required_config_params: int  # Params that MUST be set
+    optional_config_params: int  # Optional tuning parameters
+    has_sensible_defaults: bool  # Works well out of box
     config_documentation_quality: int  # 1-5 scale
 
     # Dependencies
     external_dependencies: List[str]  # etcd, minio, postgres, etc.
-    min_memory_gb: float             # Minimum memory requirement
-    min_cpu_cores: int               # Minimum CPU cores
+    min_memory_gb: float  # Minimum memory requirement
+    min_cpu_cores: int  # Minimum CPU cores
 
     # Monitoring
-    prometheus_metrics: bool         # Exposes Prometheus metrics
-    builtin_dashboard: bool          # Has built-in monitoring UI
-    structured_logging: bool         # JSON/structured logs
-    health_check_endpoint: bool      # /health or similar
+    prometheus_metrics: bool  # Exposes Prometheus metrics
+    builtin_dashboard: bool  # Has built-in monitoring UI
+    structured_logging: bool  # JSON/structured logs
+    health_check_endpoint: bool  # /health or similar
 
     # Maintenance
-    online_backup: bool              # Can backup without downtime
-    online_scaling: bool             # Can scale without downtime
-    auto_recovery: bool              # Automatic failure recovery
-    upgrade_documentation: int       # 1-5 scale
+    online_backup: bool  # Can backup without downtime
+    online_scaling: bool  # Can scale without downtime
+    auto_recovery: bool  # Automatic failure recovery
+    upgrade_documentation: int  # 1-5 scale
 
     # Documentation
-    quickstart_time_minutes: int     # Time to complete quickstart
-    api_documentation_quality: int   # 1-5 scale
-    example_code_quality: int        # 1-5 scale
-    community_size: int              # GitHub stars (proxy)
+    quickstart_time_minutes: int  # Time to complete quickstart
+    api_documentation_quality: int  # 1-5 scale
+    example_code_quality: int  # 1-5 scale
+    community_size: int  # GitHub stars (proxy)
 
     # Support
     has_enterprise_support: bool
@@ -74,6 +76,7 @@ class OperationalMetrics:
 @dataclass
 class OperationalComplexityScore:
     """Computed operational complexity scores."""
+
     database: str
 
     # Subscores (0-100, lower is simpler/better)
@@ -87,9 +90,9 @@ class OperationalComplexityScore:
     overall_score: float
 
     # Recommendations
-    best_for: List[str]          # Use cases this DB excels at
-    challenges: List[str]        # Potential operational challenges
-    recommended_team_size: str   # "solo", "small", "medium", "large"
+    best_for: List[str]  # Use cases this DB excels at
+    challenges: List[str]  # Potential operational challenges
+    recommended_team_size: str  # "solo", "small", "medium", "large"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -113,35 +116,28 @@ DATABASE_OPERATIONAL_PROFILES: Dict[str, OperationalMetrics] = {
         min_deployment_steps=3,  # Sign up, create index, insert
         has_managed_option=True,
         docker_image_size_mb=0,  # No self-hosting
-
         required_config_params=2,  # API key, environment
         optional_config_params=5,
         has_sensible_defaults=True,
         config_documentation_quality=5,
-
         external_dependencies=[],
         min_memory_gb=0,  # Managed
         min_cpu_cores=0,
-
         prometheus_metrics=False,  # Cloud dashboard only
         builtin_dashboard=True,
         structured_logging=True,
         health_check_endpoint=True,
-
         online_backup=True,  # Managed by Pinecone
         online_scaling=True,
         auto_recovery=True,
         upgrade_documentation=5,
-
         quickstart_time_minutes=15,
         api_documentation_quality=5,
         example_code_quality=5,
         community_size=2000,
-
         has_enterprise_support=True,
         community_response_hours=24,
     ),
-
     "milvus": OperationalMetrics(
         deployment_methods=[
             DeploymentMethod.DOCKER_COMPOSE,
@@ -151,35 +147,28 @@ DATABASE_OPERATIONAL_PROFILES: Dict[str, OperationalMetrics] = {
         min_deployment_steps=8,  # docker-compose with etcd, minio
         has_managed_option=True,  # Zilliz Cloud
         docker_image_size_mb=500,
-
         required_config_params=5,
         optional_config_params=50,  # Many tuning options
         has_sensible_defaults=True,
         config_documentation_quality=4,
-
         external_dependencies=["etcd", "minio/s3"],
         min_memory_gb=8,
         min_cpu_cores=4,
-
         prometheus_metrics=True,
         builtin_dashboard=False,  # Attu is separate
         structured_logging=True,
         health_check_endpoint=True,
-
         online_backup=True,
         online_scaling=True,  # Distributed architecture
         auto_recovery=True,
         upgrade_documentation=4,
-
         quickstart_time_minutes=30,
         api_documentation_quality=4,
         example_code_quality=4,
         community_size=25000,
-
         has_enterprise_support=True,  # Zilliz
         community_response_hours=48,
     ),
-
     "qdrant": OperationalMetrics(
         deployment_methods=[
             DeploymentMethod.DOCKER_SINGLE,
@@ -190,35 +179,28 @@ DATABASE_OPERATIONAL_PROFILES: Dict[str, OperationalMetrics] = {
         min_deployment_steps=2,  # docker run
         has_managed_option=True,  # Qdrant Cloud
         docker_image_size_mb=150,
-
         required_config_params=1,  # Just port
         optional_config_params=20,
         has_sensible_defaults=True,
         config_documentation_quality=5,
-
         external_dependencies=[],  # Standalone
         min_memory_gb=2,
         min_cpu_cores=2,
-
         prometheus_metrics=True,
         builtin_dashboard=True,  # Web UI included
         structured_logging=True,
         health_check_endpoint=True,
-
         online_backup=True,
         online_scaling=True,  # Distributed mode
         auto_recovery=True,
         upgrade_documentation=5,
-
         quickstart_time_minutes=10,
         api_documentation_quality=5,
         example_code_quality=5,
         community_size=15000,
-
         has_enterprise_support=True,
         community_response_hours=24,
     ),
-
     "weaviate": OperationalMetrics(
         deployment_methods=[
             DeploymentMethod.DOCKER_SINGLE,
@@ -228,35 +210,28 @@ DATABASE_OPERATIONAL_PROFILES: Dict[str, OperationalMetrics] = {
         min_deployment_steps=3,
         has_managed_option=True,  # Weaviate Cloud
         docker_image_size_mb=300,
-
         required_config_params=3,
         optional_config_params=30,
         has_sensible_defaults=True,
         config_documentation_quality=4,
-
         external_dependencies=[],
         min_memory_gb=4,
         min_cpu_cores=2,
-
         prometheus_metrics=True,
         builtin_dashboard=False,
         structured_logging=True,
         health_check_endpoint=True,
-
         online_backup=True,
         online_scaling=True,
         auto_recovery=True,
         upgrade_documentation=4,
-
         quickstart_time_minutes=15,
         api_documentation_quality=4,
         example_code_quality=4,
         community_size=8000,
-
         has_enterprise_support=True,
         community_response_hours=36,
     ),
-
     "pgvector": OperationalMetrics(
         deployment_methods=[
             DeploymentMethod.DOCKER_SINGLE,
@@ -266,35 +241,28 @@ DATABASE_OPERATIONAL_PROFILES: Dict[str, OperationalMetrics] = {
         min_deployment_steps=4,  # Need PostgreSQL + extension
         has_managed_option=True,  # Via managed Postgres
         docker_image_size_mb=400,
-
         required_config_params=4,  # PG connection params
         optional_config_params=15,
         has_sensible_defaults=True,  # Inherits from PG
         config_documentation_quality=4,
-
         external_dependencies=["postgresql"],
         min_memory_gb=2,
         min_cpu_cores=2,
-
         prometheus_metrics=True,  # Via pg_stat
         builtin_dashboard=False,  # pgAdmin is separate
         structured_logging=True,
         health_check_endpoint=True,
-
         online_backup=True,  # pg_dump, pg_basebackup
         online_scaling=True,  # Postgres replication
         auto_recovery=True,  # With proper setup
         upgrade_documentation=4,
-
         quickstart_time_minutes=20,
         api_documentation_quality=3,  # Less vector-specific docs
         example_code_quality=3,
         community_size=7000,
-
         has_enterprise_support=True,  # Via Postgres vendors
         community_response_hours=48,
     ),
-
     "chroma": OperationalMetrics(
         deployment_methods=[
             DeploymentMethod.EMBEDDED,
@@ -303,38 +271,34 @@ DATABASE_OPERATIONAL_PROFILES: Dict[str, OperationalMetrics] = {
         min_deployment_steps=1,  # pip install
         has_managed_option=False,  # No managed service yet
         docker_image_size_mb=200,
-
         required_config_params=0,  # Works with defaults
         optional_config_params=10,
         has_sensible_defaults=True,
         config_documentation_quality=4,
-
         external_dependencies=[],
         min_memory_gb=1,
         min_cpu_cores=1,
-
         prometheus_metrics=False,
         builtin_dashboard=False,
         structured_logging=False,
         health_check_endpoint=True,
-
         online_backup=False,  # File-based
         online_scaling=False,  # Single-node only
         auto_recovery=False,
         upgrade_documentation=3,
-
         quickstart_time_minutes=5,
         api_documentation_quality=4,
         example_code_quality=4,
         community_size=10000,
-
         has_enterprise_support=False,
         community_response_hours=72,
     ),
 }
 
 
-def compute_complexity_score(metrics: OperationalMetrics, database: str) -> OperationalComplexityScore:
+def compute_complexity_score(
+    metrics: OperationalMetrics, database: str
+) -> OperationalComplexityScore:
     """
     Compute operational complexity score from metrics.
 
@@ -388,11 +352,11 @@ def compute_complexity_score(metrics: OperationalMetrics, database: str) -> Oper
         "documentation": 0.10,
     }
     overall_score = (
-        deployment_score * weights["deployment"] +
-        configuration_score * weights["configuration"] +
-        monitoring_score * weights["monitoring"] +
-        maintenance_score * weights["maintenance"] +
-        documentation_score * weights["documentation"]
+        deployment_score * weights["deployment"]
+        + configuration_score * weights["configuration"]
+        + monitoring_score * weights["monitoring"]
+        + maintenance_score * weights["maintenance"]
+        + documentation_score * weights["documentation"]
     )
 
     # Generate recommendations
@@ -477,10 +441,10 @@ def generate_complexity_report(output_format: str = "markdown") -> str:
         for db, score in sorted(scores.items(), key=lambda x: x[1].overall_score):
             lines.append(f"### {db.title()}\n")
             lines.append(f"**Overall Score:** {score.overall_score:.0f}/100\n")
-            lines.append(f"**Best For:**")
+            lines.append("**Best For:**")
             for item in score.best_for:
                 lines.append(f"- {item}")
-            lines.append(f"\n**Challenges:**")
+            lines.append("\n**Challenges:**")
             for item in score.challenges:
                 lines.append(f"- {item}")
             lines.append("")

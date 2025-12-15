@@ -9,6 +9,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 
@@ -25,6 +26,7 @@ class ColdStartResult:
 
     This separation allows reviewers to understand WHERE time is spent.
     """
+
     database: str
     mean_ms: float  # Total time (legacy compatibility)
     std_ms: float
@@ -58,16 +60,14 @@ class ColdStartResult:
                 "container_start_ms": self.container_start_ms,
                 "api_ready_ms": self.api_ready_ms,
                 "first_query_ms": self.first_query_ms,
-            }
+            },
         }
 
 
 def get_container_id(db_name: str) -> Optional[str]:
     """Get Docker container ID for a database."""
     result = subprocess.run(
-        ["docker", "ps", "-q", "-f", f"name={db_name}"],
-        capture_output=True,
-        text=True
+        ["docker", "ps", "-q", "-f", f"name={db_name}"], capture_output=True, text=True
     )
     container_id = result.stdout.strip()
     return container_id if container_id else None
@@ -86,7 +86,7 @@ def wait_for_healthy(db_name: str, timeout_seconds: float = 60) -> float:
         result = subprocess.run(
             ["docker", "inspect", "--format", "{{.State.Health.Status}}", db_name],
             capture_output=True,
-            text=True
+            text=True,
         )
         status = result.stdout.strip()
 
@@ -97,7 +97,7 @@ def wait_for_healthy(db_name: str, timeout_seconds: float = 60) -> float:
         result = subprocess.run(
             ["docker", "inspect", "--format", "{{.State.Status}}", db_name],
             capture_output=True,
-            text=True
+            text=True,
         )
         if result.stdout.strip() == "running" and status == "":
             # No health check defined, assume healthy after short delay
@@ -121,7 +121,7 @@ def measure_cold_start(
     collection_name: str,
     query_vector: List[float],
     num_trials: int = 10,
-    include_data_load: bool = False
+    include_data_load: bool = False,
 ) -> ColdStartResult:
     """
     Measure cold start latency with phase breakdown.
@@ -150,11 +150,7 @@ def measure_cold_start(
 
     for trial in range(num_trials):
         # Stop container
-        subprocess.run(
-            ["docker", "stop", db_name],
-            capture_output=True,
-            check=True
-        )
+        subprocess.run(["docker", "stop", db_name], capture_output=True, check=True)
 
         # Disconnect adapter
         try:
@@ -165,11 +161,7 @@ def measure_cold_start(
         # Phase 1: Container start
         phase1_start = time.perf_counter()
 
-        subprocess.run(
-            ["docker", "start", db_name],
-            capture_output=True,
-            check=True
-        )
+        subprocess.run(["docker", "start", db_name], capture_output=True, check=True)
 
         # Container is now "running" but may not be healthy
         phase1_end = time.perf_counter()
@@ -221,10 +213,7 @@ def measure_cold_start(
 
 
 def measure_cold_start_without_docker(
-    adapter,
-    collection_name: str,
-    query_vector: List[float],
-    num_trials: int = 10
+    adapter, collection_name: str, query_vector: List[float], num_trials: int = 10
 ) -> ColdStartResult:
     """
     Measure cold start at the adapter level (without Docker restart).
@@ -258,5 +247,5 @@ def measure_cold_start_without_docker(
         p95_ms=float(np.percentile(times_np, 95)),
         p99_ms=float(np.percentile(times_np, 99)),
         trials=times,
-        methodology="adapter_reconnect"
+        methodology="adapter_reconnect",
     )

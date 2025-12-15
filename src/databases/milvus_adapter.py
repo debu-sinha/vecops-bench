@@ -2,16 +2,17 @@
 
 import time
 from typing import Any, Dict, List, Optional
+
 from pymilvus import (
-    connections,
     Collection,
     CollectionSchema,
-    FieldSchema,
     DataType,
+    FieldSchema,
+    connections,
     utility,
 )
 
-from .base import VectorDBAdapter, QueryResult, IndexStats
+from .base import IndexStats, QueryResult, VectorDBAdapter
 
 
 class MilvusAdapter(VectorDBAdapter):
@@ -39,7 +40,7 @@ class MilvusAdapter(VectorDBAdapter):
             host=self.config.get("host", "localhost"),
             port=self.config.get("port", 19530),
             user=self.config.get("user", ""),
-            password=self.config.get("password", "")
+            password=self.config.get("password", ""),
         )
         self._is_connected = True
 
@@ -50,11 +51,7 @@ class MilvusAdapter(VectorDBAdapter):
         self._is_connected = False
 
     def create_index(
-        self,
-        collection_name: str,
-        dimensions: int,
-        metric: str = "cosine",
-        **kwargs
+        self, collection_name: str, dimensions: int, metric: str = "cosine", **kwargs
     ) -> None:
         """Create a new collection in Milvus."""
         if not self._is_connected:
@@ -66,7 +63,7 @@ class MilvusAdapter(VectorDBAdapter):
             "l2": "L2",
             "euclidean": "L2",
             "ip": "IP",
-            "inner_product": "IP"
+            "inner_product": "IP",
         }
         milvus_metric = metric_map.get(metric.lower(), "COSINE")
 
@@ -85,22 +82,19 @@ class MilvusAdapter(VectorDBAdapter):
         if kwargs.get("metadata_fields"):
             for field_name, field_type in kwargs["metadata_fields"].items():
                 if field_type == "string":
-                    fields.append(FieldSchema(name=field_name, dtype=DataType.VARCHAR, max_length=1024))
+                    fields.append(
+                        FieldSchema(name=field_name, dtype=DataType.VARCHAR, max_length=1024)
+                    )
                 elif field_type == "int":
                     fields.append(FieldSchema(name=field_name, dtype=DataType.INT64))
                 elif field_type == "float":
                     fields.append(FieldSchema(name=field_name, dtype=DataType.FLOAT))
 
         schema = CollectionSchema(
-            fields=fields,
-            description=f"VectorDB-Bench collection: {collection_name}"
+            fields=fields, description=f"VectorDB-Bench collection: {collection_name}"
         )
 
-        collection = Collection(
-            name=collection_name,
-            schema=schema,
-            using=self.alias
-        )
+        collection = Collection(name=collection_name, schema=schema, using=self.alias)
 
         # Create index
         index_type = kwargs.get("index_type", "HNSW")
@@ -112,27 +106,17 @@ class MilvusAdapter(VectorDBAdapter):
         if index_type == "HNSW":
             index_params["params"] = {
                 "M": kwargs.get("m", 16),
-                "efConstruction": kwargs.get("ef_construction", 200)
+                "efConstruction": kwargs.get("ef_construction", 200),
             }
         elif index_type == "IVF_FLAT":
-            index_params["params"] = {
-                "nlist": kwargs.get("nlist", 1024)
-            }
+            index_params["params"] = {"nlist": kwargs.get("nlist", 1024)}
         elif index_type == "IVF_SQ8":
-            index_params["params"] = {
-                "nlist": kwargs.get("nlist", 1024)
-            }
+            index_params["params"] = {"nlist": kwargs.get("nlist", 1024)}
 
-        collection.create_index(
-            field_name="embedding",
-            index_params=index_params
-        )
+        collection.create_index(field_name="embedding", index_params=index_params)
 
         # Also create index on doc_id for filtering
-        collection.create_index(
-            field_name="doc_id",
-            index_params={"index_type": "Trie"}
-        )
+        collection.create_index(field_name="doc_id", index_params={"index_type": "Trie"})
 
         self.collections[collection_name] = collection
 
@@ -141,7 +125,7 @@ class MilvusAdapter(VectorDBAdapter):
         collection_name: str,
         ids: List[str],
         vectors: List[List[float]],
-        metadata: Optional[List[Dict[str, Any]]] = None
+        metadata: Optional[List[Dict[str, Any]]] = None,
     ) -> float:
         """Insert vectors into the collection."""
         if not self._is_connected:
@@ -156,11 +140,11 @@ class MilvusAdapter(VectorDBAdapter):
         start_time = time.perf_counter()
 
         for i in range(0, len(ids), batch_size):
-            batch_ids = ids[i:i + batch_size]
-            batch_vectors = vectors[i:i + batch_size]
+            batch_ids = ids[i : i + batch_size]
+            batch_vectors = vectors[i : i + batch_size]
 
             data = [
-                batch_ids,      # doc_id
+                batch_ids,  # doc_id
                 batch_vectors,  # embedding
             ]
 
@@ -176,7 +160,7 @@ class MilvusAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         top_k: int = 10,
-        filter: Optional[Dict[str, Any]] = None
+        filter: Optional[Dict[str, Any]] = None,
     ) -> QueryResult:
         """Search for similar vectors."""
         if not self._is_connected:
@@ -193,10 +177,7 @@ class MilvusAdapter(VectorDBAdapter):
         # Build filter expression
         expr = self._build_filter_expression(filter) if filter else None
 
-        search_params = {
-            "metric_type": "COSINE",
-            "params": {"ef": 128}  # HNSW search parameter
-        }
+        search_params = {"metric_type": "COSINE", "params": {"ef": 128}}  # HNSW search parameter
 
         start_time = time.perf_counter()
 
@@ -206,7 +187,7 @@ class MilvusAdapter(VectorDBAdapter):
             param=search_params,
             limit=top_k,
             expr=expr,
-            output_fields=["doc_id"]
+            output_fields=["doc_id"],
         )
 
         latency_ms = (time.perf_counter() - start_time) * 1000
@@ -220,12 +201,7 @@ class MilvusAdapter(VectorDBAdapter):
                 ids.append(hit.entity.get("doc_id"))
                 scores.append(hit.score)
 
-        return QueryResult(
-            ids=ids,
-            scores=scores,
-            latency_ms=latency_ms,
-            metadata=None
-        )
+        return QueryResult(ids=ids, scores=scores, latency_ms=latency_ms, metadata=None)
 
     def hybrid_search(
         self,
@@ -233,7 +209,7 @@ class MilvusAdapter(VectorDBAdapter):
         query_vector: List[float],
         query_text: str,
         top_k: int = 10,
-        alpha: float = 0.5
+        alpha: float = 0.5,
     ) -> QueryResult:
         """
         Hybrid search combining dense and sparse retrieval.
@@ -271,7 +247,7 @@ class MilvusAdapter(VectorDBAdapter):
             dimensions=dimensions,
             index_size_bytes=0,  # Not directly available
             build_time_seconds=0,
-            memory_usage_bytes=0
+            memory_usage_bytes=0,
         )
 
     def delete_index(self, collection_name: str) -> None:
@@ -291,31 +267,31 @@ class MilvusAdapter(VectorDBAdapter):
                         if isinstance(val, str):
                             expressions.append(f'{key} == "{val}"')
                         else:
-                            expressions.append(f'{key} == {val}')
+                            expressions.append(f"{key} == {val}")
                     elif op == "$gt":
-                        expressions.append(f'{key} > {val}')
+                        expressions.append(f"{key} > {val}")
                     elif op == "$gte":
-                        expressions.append(f'{key} >= {val}')
+                        expressions.append(f"{key} >= {val}")
                     elif op == "$lt":
-                        expressions.append(f'{key} < {val}')
+                        expressions.append(f"{key} < {val}")
                     elif op == "$lte":
-                        expressions.append(f'{key} <= {val}')
+                        expressions.append(f"{key} <= {val}")
                     elif op == "$ne":
                         if isinstance(val, str):
                             expressions.append(f'{key} != "{val}"')
                         else:
-                            expressions.append(f'{key} != {val}')
+                            expressions.append(f"{key} != {val}")
                     elif op == "$in":
                         if isinstance(val[0], str):
-                            vals = ', '.join(f'"{v}"' for v in val)
+                            vals = ", ".join(f'"{v}"' for v in val)
                         else:
-                            vals = ', '.join(str(v) for v in val)
-                        expressions.append(f'{key} in [{vals}]')
+                            vals = ", ".join(str(v) for v in val)
+                        expressions.append(f"{key} in [{vals}]")
             else:
                 if isinstance(value, str):
                     expressions.append(f'{key} == "{value}"')
                 else:
-                    expressions.append(f'{key} == {value}')
+                    expressions.append(f"{key} == {value}")
 
         return " and ".join(expressions) if expressions else None
 
@@ -324,7 +300,7 @@ class MilvusAdapter(VectorDBAdapter):
         collection_name: str,
         query_vector: List[float],
         filter: Dict[str, Any],
-        top_k: int = 10
+        top_k: int = 10,
     ) -> QueryResult:
         """Search with metadata filtering."""
         return self.search(collection_name, query_vector, top_k, filter=filter)

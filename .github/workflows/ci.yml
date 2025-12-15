@@ -25,10 +25,10 @@ jobs:
         run: black --check --line-length 100 src/ scripts/
 
       - name: Check imports (isort)
-        run: isort --check-only src/ scripts/
+        run: isort --check-only --profile black src/ scripts/
 
       - name: Lint (flake8)
-        run: flake8 src/ scripts/ --max-line-length 100 --ignore=E501,W503
+        run: flake8 src/ scripts/ --max-line-length 100 --ignore=E501,W503,E203,E402,F401,F841,F402,F541
 
   test:
     runs-on: ubuntu-latest

@@ -9,12 +9,14 @@ import subprocess
 import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 
 @dataclass
 class MemoryPressureResult:
     """Results from memory pressure test."""
+
     database: str
     memory_limit: str
     status: str  # "success", "degraded", "crashed", "oom"
@@ -31,14 +33,12 @@ class MemoryPressureResult:
             "qps": self.qps,
             "latency_p50_ms": self.latency_p50_ms,
             "latency_p99_ms": self.latency_p99_ms,
-            "error": self.error
+            "error": self.error,
         }
 
 
 def restart_container_with_memory_limit(
-    container_name: str,
-    memory_limit: str,
-    compose_file: str = "docker-compose.yaml"
+    container_name: str, memory_limit: str, compose_file: str = "docker-compose.yaml"
 ) -> bool:
     """
     Restart container with new memory limit.
@@ -46,17 +46,19 @@ def restart_container_with_memory_limit(
     Uses docker update for running containers or recreates with limit.
     """
     # Stop existing container
-    subprocess.run(
-        ["docker", "stop", container_name],
-        capture_output=True
-    )
+    subprocess.run(["docker", "stop", container_name], capture_output=True)
 
     # Update memory limit and restart
     result = subprocess.run(
-        ["docker", "update", f"--memory={memory_limit}",
-         f"--memory-swap={memory_limit}", container_name],
+        [
+            "docker",
+            "update",
+            f"--memory={memory_limit}",
+            f"--memory-swap={memory_limit}",
+            container_name,
+        ],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     if result.returncode != 0:
@@ -66,14 +68,11 @@ def restart_container_with_memory_limit(
         subprocess.run(
             ["docker-compose", "-f", compose_file, "up", "-d", container_name],
             capture_output=True,
-            env={**subprocess.os.environ, **env}
+            env={**subprocess.os.environ, **env},
         )
 
     # Start container
-    subprocess.run(
-        ["docker", "start", container_name],
-        capture_output=True
-    )
+    subprocess.run(["docker", "start", container_name], capture_output=True)
 
     # Wait for container to be ready
     time.sleep(5)
@@ -82,7 +81,7 @@ def restart_container_with_memory_limit(
     result = subprocess.run(
         ["docker", "inspect", "--format", "{{.State.Running}}", container_name],
         capture_output=True,
-        text=True
+        text=True,
     )
 
     return result.stdout.strip() == "true"
@@ -94,7 +93,7 @@ def run_memory_constrained_benchmark(
     collection_name: str,
     query_vectors: List[List[float]],
     memory_limits: List[str] = ["64g", "32g", "16g", "8g", "4g"],
-    qps_duration: float = 30.0
+    qps_duration: float = 30.0,
 ) -> Dict[str, MemoryPressureResult]:
     """
     Test database behavior under varying memory constraints.
@@ -127,7 +126,7 @@ def run_memory_constrained_benchmark(
                     qps=None,
                     latency_p50_ms=None,
                     latency_p99_ms=None,
-                    error="Container failed to start (likely OOM)"
+                    error="Container failed to start (likely OOM)",
                 )
                 continue
 
@@ -137,10 +136,7 @@ def run_memory_constrained_benchmark(
 
             # Run QPS benchmark
             qps, latencies = adapter.benchmark_qps(
-                collection_name,
-                query_vectors,
-                top_k=10,
-                duration_seconds=qps_duration
+                collection_name, query_vectors, top_k=10, duration_seconds=qps_duration
             )
 
             latencies_np = np.array(latencies)
@@ -160,7 +156,7 @@ def run_memory_constrained_benchmark(
                 qps=qps,
                 latency_p50_ms=float(p50),
                 latency_p99_ms=float(p99),
-                error=None
+                error=None,
             )
 
         except MemoryError as e:
@@ -171,7 +167,7 @@ def run_memory_constrained_benchmark(
                 qps=None,
                 latency_p50_ms=None,
                 latency_p99_ms=None,
-                error=str(e)
+                error=str(e),
             )
 
         except Exception as e:
@@ -182,7 +178,7 @@ def run_memory_constrained_benchmark(
                 qps=None,
                 latency_p50_ms=None,
                 latency_p99_ms=None,
-                error=str(e)
+                error=str(e),
             )
 
     return results
@@ -194,7 +190,7 @@ def find_minimum_viable_memory(
     collection_name: str,
     query_vectors: List[List[float]],
     min_qps: float = 10.0,
-    max_p99_ms: float = 1000.0
+    max_p99_ms: float = 1000.0,
 ) -> str:
     """
     Binary search to find minimum memory for acceptable performance.
@@ -215,10 +211,7 @@ def find_minimum_viable_memory(
             adapter.connect()
 
             qps, latencies = adapter.benchmark_qps(
-                collection_name,
-                query_vectors[:100],  # Quick test
-                top_k=10,
-                duration_seconds=10
+                collection_name, query_vectors[:100], top_k=10, duration_seconds=10  # Quick test
             )
 
             p99 = np.percentile(latencies, 99)
