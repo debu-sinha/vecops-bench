@@ -7,6 +7,7 @@
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub stars](https://img.shields.io/github/stars/debu-sinha/vecops-bench?style=social)](https://github.com/debu-sinha/vecops-bench)
 [![GitHub forks](https://img.shields.io/github/forks/debu-sinha/vecops-bench?style=social)](https://github.com/debu-sinha/vecops-bench/fork)
+[![Downloads](https://img.shields.io/github/downloads/debu-sinha/vecops-bench/total)](https://github.com/debu-sinha/vecops-bench/releases)
 [![CI](https://github.com/debu-sinha/vecops-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/debu-sinha/vecops-bench/actions)
 
 > A production-oriented benchmark suite for vector databases focusing on **Day-2 Operations**: cold start latency, crash recovery, operational complexity, and filtered search overhead.
