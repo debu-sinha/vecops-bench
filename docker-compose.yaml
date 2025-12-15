@@ -138,8 +138,9 @@ services:
 
   # PostgreSQL with pgvector extension
   # https://github.com/pgvector/pgvector
+  # Updated to pg16 (pgvector 0.8.0+) for Iterative Index Scans
   postgres:
-    image: pgvector/pgvector:0.6.0-pg16
+    image: pgvector/pgvector:pg16
     container_name: vectordb-bench-postgres
     ports:
       - "5432:5432"
@@ -201,6 +202,6 @@ volumes:
 # etcd:      v3.5.11
 # minio:     RELEASE.2024-01-01T16-36-33Z
 # weaviate:  1.27.0  (updated from 1.23.0 for Python client compatibility)
-# pgvector:  0.6.0-pg16
+# pgvector:  pg16 (0.8.0+) - Updated for Iterative Index Scans
 # chroma:    0.6.3   (updated for Python client 1.3.x compatibility)
 # =============================================================================
