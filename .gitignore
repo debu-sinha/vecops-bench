@@ -46,3 +46,4 @@ dist/
 *.key
 credentials.json
 .env.local
+TESTING_PLAN.md
