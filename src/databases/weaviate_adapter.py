@@ -87,7 +87,7 @@ class WeaviateAdapter(VectorDBAdapter):
         # HNSW configuration
         ef_construction = kwargs.get("ef_construction", 128)
         max_connections = kwargs.get("m", 16)
-        ef = kwargs.get("ef", 64)
+        ef = kwargs.get("ef", 100)
 
         # Create collection
         self.client.collections.create(

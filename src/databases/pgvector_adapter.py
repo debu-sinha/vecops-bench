@@ -95,7 +95,7 @@ class PgvectorAdapter(VectorDBAdapter):
 
         if index_type == "hnsw":
             m = kwargs.get("m", 16)
-            ef_construction = kwargs.get("ef_construction", 64)
+            ef_construction = kwargs.get("ef_construction", 128)
             self.cursor.execute(
                 f"""
                 CREATE INDEX {collection_name}_embedding_idx

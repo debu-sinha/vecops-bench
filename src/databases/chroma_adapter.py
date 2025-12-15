@@ -75,7 +75,7 @@ class ChromaAdapter(VectorDBAdapter):
             pass
 
         self.collections[collection_name] = self.client.create_collection(
-            name=collection_name, metadata={"hnsw:space": chroma_metric}
+            name=collection_name, metadata={"hnsw:space": chroma_metric, "hnsw:M": 16, "hnsw:construction_ef": 128, "hnsw:search_ef": 100}
         )
 
     def _get_collection(self, collection_name: str) -> chromadb.Collection:

@@ -93,7 +93,7 @@ class QdrantAdapter(VectorDBAdapter):
         # HNSW configuration
         hnsw_config = HnswConfigDiff(
             m=kwargs.get("m", 16),
-            ef_construct=kwargs.get("ef_construct", 100),
+            ef_construct=kwargs.get("ef_construct", 128),
             full_scan_threshold=kwargs.get("full_scan_threshold", 10000),
         )
 
@@ -167,7 +167,7 @@ class QdrantAdapter(VectorDBAdapter):
         # Convert filter to Qdrant format
         qdrant_filter = self._convert_filter(filter) if filter else None
 
-        search_params = SearchParams(hnsw_ef=128, exact=False)  # Higher ef for better recall
+        search_params = SearchParams(hnsw_ef=100, exact=False)  # Higher ef for better recall
 
         start_time = time.perf_counter()
 

@@ -49,8 +49,8 @@ class FaissAdapter(VectorDBAdapter):
         #
         # For fair recall comparison, we use ef_search=100 for all databases.
         self.index_type = config.get("index_type", "HNSW")
-        self.M = config.get("M", 32)  # HNSW connections per node
-        self.ef_construction = config.get("ef_construction", 64)  # Lower for faster build
+        self.M = config.get("M", 16)  # HNSW connections per node
+        self.ef_construction = config.get("ef_construction", 128)  # Lower for faster build
         self.ef_search = config.get("ef_search", 100)
 
         # Index storage

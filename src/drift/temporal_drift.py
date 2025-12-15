@@ -82,7 +82,7 @@ class TemporalDriftSimulator:
     DRIFT_CONFIGS = {
         DriftPattern.STABLE: {
             "update_rate": 0.01,
-            "delete_rate": 0.005,
+            "delete_rate": 0.0,  # Archivist: append-only
             "add_rate": 0.01,
             "semantic_shift_rate": 0.001,
         },
@@ -108,8 +108,8 @@ class TemporalDriftSimulator:
         },
         DriftPattern.CATASTROPHIC: {
             "update_rate": 0.30,
-            "delete_rate": 0.20,
-            "add_rate": 0.25,
+            "delete_rate": 0.30,
+            "add_rate": 0.30,
             "semantic_shift_rate": 0.10,
         },
     }

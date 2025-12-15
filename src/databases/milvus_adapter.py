@@ -106,7 +106,7 @@ class MilvusAdapter(VectorDBAdapter):
         if index_type == "HNSW":
             index_params["params"] = {
                 "M": kwargs.get("m", 16),
-                "efConstruction": kwargs.get("ef_construction", 200),
+                "efConstruction": kwargs.get("ef_construction", 128),
             }
         elif index_type == "IVF_FLAT":
             index_params["params"] = {"nlist": kwargs.get("nlist", 1024)}
@@ -177,7 +177,7 @@ class MilvusAdapter(VectorDBAdapter):
         # Build filter expression
         expr = self._build_filter_expression(filter) if filter else None
 
-        search_params = {"metric_type": "COSINE", "params": {"ef": 128}}  # HNSW search parameter
+        search_params = {"metric_type": "COSINE", "params": {"ef": 100}}  # HNSW search parameter
 
         start_time = time.perf_counter()
 
