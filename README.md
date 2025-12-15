@@ -5,6 +5,9 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17924957.svg)](https://doi.org/10.5281/zenodo.17924957)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![GitHub stars](https://img.shields.io/github/stars/debu-sinha/vecops-bench?style=social)](https://github.com/debu-sinha/vecops-bench)
+[![GitHub forks](https://img.shields.io/github/forks/debu-sinha/vecops-bench?style=social)](https://github.com/debu-sinha/vecops-bench/fork)
+[![CI](https://github.com/debu-sinha/vecops-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/debu-sinha/vecops-bench/actions)
 
 > A production-oriented benchmark suite for vector databases focusing on **Day-2 Operations**: cold start latency, crash recovery, operational complexity, and filtered search overhead.
 
