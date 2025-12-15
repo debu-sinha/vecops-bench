@@ -1,0 +1,172 @@
+# VectorDB-Bench v2.0 Experiment Configuration
+# Addresses reviewer feedback: proper scale, statistical rigor, missing baselines
+
+experiment:
+  name: "vectordb-bench-v2"
+  version: "2.0.0"
+  description: "Production-oriented vector database benchmark with proper methodology"
+  random_seed: 42
+
+# =============================================================================
+# PHASED APPROACH: Run 1M first to validate, then 10M
+# =============================================================================
+phases:
+  validation:
+    scale: 1000000      # 1M vectors
+    num_queries: 1000   # Proper sample size
+    trials: 3           # Quick validation
+
+  production:
+    scale: 10000000     # 10M vectors
+    num_queries: 5000   # Full statistical power
+    trials: 5           # Publication quality
+
+# =============================================================================
+# DATABASES (including new baselines)
+# =============================================================================
+databases:
+  # === NEW: Faiss baseline (theoretical speed of light) ===
+  faiss:
+    enabled: true
+    type: "baseline"
+    config:
+      index_type: "HNSW"  # or IVF_FLAT for comparison
+      M: 32               # HNSW connections
+      ef_construction: 200
+      ef_search: 100
+
+  # === NEW: Elasticsearch with dense vectors ===
+  elasticsearch:
+    enabled: true
+    type: "production"
+    config:
+      host: "localhost"
+      port: 9200
+      index_type: "dense_vector"
+      num_candidates: 100
+
+  # === Existing databases ===
+  milvus:
+    enabled: true
+    config:
+      host: "localhost"
+      port: 19530
+      index_type: "HNSW"
+      M: 32
+      ef_construction: 200
+
+  qdrant:
+    enabled: true
+    config:
+      host: "localhost"
+      port: 6333
+      hnsw_ef: 128
+
+  pgvector:
+    enabled: true
+    config:
+      host: "localhost"
+      port: 5432
+      database: "vectordb_bench"
+      user: "postgres"
+      password: "postgres"
+      index_type: "hnsw"  # or ivfflat
+      m: 16
+      ef_construction: 64
+
+  chroma:
+    enabled: true
+    config:
+      host: "localhost"
+      port: 8000
+
+  weaviate:
+    enabled: true
+    config:
+      host: "localhost"
+      port: 8080
+      ef: 100
+
+# =============================================================================
+# DATASETS - Proper scale
+# =============================================================================
+datasets:
+  # Primary benchmark dataset
+  - name: "laion-10m"
+    source: "huggingface"
+    dataset_id: "laion/laion2B-en-1M"
+    num_docs: 10000000
+    dimensions: 768
+
+  # Fallback if LAION unavailable
+  - name: "msmarco-full"
+    source: "beir"
+    num_docs: 8841823   # Full MS MARCO
+    num_queries: 6980   # All dev queries (NOT 21!)
+    dimensions: 768
+
+  # Validation dataset (smaller)
+  - name: "msmarco-1m"
+    source: "beir"
+    num_docs: 1000000
+    num_queries: 1000
+    dimensions: 768
+
+embedding_model:
+  name: "sentence-transformers/all-mpnet-base-v2"
+  dimensions: 768
+  batch_size: 256  # Larger batch for efficiency
+
+# =============================================================================
+# BENCHMARK CONFIGURATION - Proper methodology
+# =============================================================================
+benchmark:
+  # Standard metrics
+  recall_k: [1, 10, 100]
+  num_queries: 1000         # Minimum for statistical validity
+  qps_duration_seconds: 60  # Longer for stability
+  warmup_queries: 500       # Proper warmup
+
+  # Statistical rigor
+  num_trials: 5
+  report_confidence_interval: 0.95
+  report_std_dev: true
+
+  # Production metrics
+  cold_start_trials: 10     # More trials for stability
+  filtered_search_enabled: true
+  filter_selectivities: [0.01, 0.1, 0.5]  # Test multiple selectivities
+
+  # NEW: Query plan capture for root cause analysis
+  capture_query_plans: true
+
+  # NEW: Memory profiling
+  profile_memory: true
+  memory_sample_interval_ms: 100
+
+# =============================================================================
+# OPERATIONAL COMPLEXITY - Runtime measurement (not hardcoded!)
+# =============================================================================
+operational_complexity:
+  measure_at_runtime: true
+  metrics:
+    - count_docker_images
+    - count_config_parameters
+    - count_prometheus_metrics
+    - measure_startup_time
+    - measure_recovery_time
+    - count_log_lines_per_minute
+
+# =============================================================================
+# OUTPUT
+# =============================================================================
+output:
+  results_dir: "./results_v2"
+  save_raw_latencies: true
+  save_query_plans: true
+  save_memory_profiles: true
+  export_formats: ["json", "csv", "latex", "parquet"]
+
+  # Statistical reports
+  generate_ci_plots: true
+  generate_box_plots: true
