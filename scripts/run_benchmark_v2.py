@@ -43,6 +43,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.analysis import capture_generic_timing, capture_pgvector_query_plan
 from src.databases import get_adapter
+from src.datasets.loader import CohereWikipediaLoader
 from src.operational import RuntimeComplexityProber, compute_runtime_complexity_score
 from src.resilience import (
     measure_cold_start,
@@ -52,6 +53,7 @@ from src.resilience import (
 )
 from src.resilience.ingestion_speed import (
     optimal_batch_size_for_db,
+    stream_cohere_wikipedia,
     vector_batch_generator,
 )
 from src.stats import (
@@ -192,7 +194,12 @@ def compute_recall_at_k(retrieved_ids: List[str], ground_truth_ids: List[str], k
 
 
 def run_ingestion_benchmark(
-    adapter, collection_name: str, num_vectors: int, dimensions: int, sample_size: int = 100000
+    adapter,
+    collection_name: str,
+    num_vectors: int,
+    dimensions: int,
+    sample_size: int = 100000,
+    use_real_embeddings: bool = False,
 ) -> tuple:
     """
     Run ingestion benchmark with streaming.
@@ -200,10 +207,21 @@ def run_ingestion_benchmark(
     CRITICAL: Uses generator to avoid loading all vectors into RAM.
     Also stores a sample of vectors for ground truth computation.
 
+    Args:
+        adapter: Database adapter
+        collection_name: Target collection name
+        num_vectors: Number of vectors to ingest
+        dimensions: Vector dimensionality
+        sample_size: Number of vectors to sample for ground truth
+        use_real_embeddings: If True, use Cohere Wikipedia embeddings instead of random
+
     Returns:
         Tuple of (result_dict, sample_vectors, sample_ids)
     """
-    print(f"  Ingesting {num_vectors:,} vectors...")
+    if use_real_embeddings:
+        print(f"  Ingesting {num_vectors:,} REAL vectors (Cohere Wikipedia)...")
+    else:
+        print(f"  Ingesting {num_vectors:,} random vectors...")
 
     batch_size = optimal_batch_size_for_db(adapter.name)
 
@@ -227,7 +245,11 @@ def run_ingestion_benchmark(
     batches_completed = 0
     rng = np.random.default_rng(42)
 
-    generator = vector_batch_generator(num_vectors, dimensions, batch_size)
+    # Choose generator based on embedding type
+    if use_real_embeddings:
+        generator = stream_cohere_wikipedia(num_vectors, batch_size)
+    else:
+        generator = vector_batch_generator(num_vectors, dimensions, batch_size)
 
     # Categories for filtered search testing
     CATEGORIES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
@@ -666,6 +688,7 @@ def run_full_benchmark(
     phase_config: Dict[str, Any],
     output_dir: Path,
     skip_ingestion: bool = False,
+    use_real_embeddings: bool = False,
 ) -> Dict[str, Any]:
     """Run complete benchmark suite for a single database."""
     collection_name = f"bench_v2_{db_name}"
@@ -700,8 +723,10 @@ def run_full_benchmark(
                 phase_config["scale"],
                 DIMENSIONS,
                 sample_size=min(100000, phase_config["scale"]),  # Cap sample size
+                use_real_embeddings=use_real_embeddings,
             )
             results["ingestion"] = ingestion_result
+            results["embedding_type"] = "cohere_wikipedia" if use_real_embeddings else "random"
             gc.collect()  # Free memory after ingestion
         else:
             print("  Skipping ingestion (--skip-ingestion)")
@@ -833,6 +858,11 @@ def main():
         "--skip-ingestion", action="store_true", help="Skip data ingestion (use existing index)"
     )
     parser.add_argument("--skip-scale-check", action="store_true", help="Skip scale validity check")
+    parser.add_argument(
+        "--use-real-embeddings",
+        action="store_true",
+        help="Use real Cohere Wikipedia embeddings instead of random vectors",
+    )
 
     args = parser.parse_args()
 
@@ -848,6 +878,7 @@ def main():
     print("\nVecOps-Bench v2.0")
     print(f"Phase: {args.phase}")
     print(f"Scale: {phase_config['scale']:,} vectors")
+    print(f"Embeddings: {'Cohere Wikipedia (REAL)' if args.use_real_embeddings else 'Random'}")
     print(f"Databases: {args.database}")
     print(f"Output: {output_dir}")
 
@@ -879,7 +910,12 @@ def main():
         db_config = db_configs.get(db_name, {}).get("config", {})
 
         result = run_full_benchmark(
-            db_name, db_config, phase_config, output_dir, skip_ingestion=args.skip_ingestion
+            db_name,
+            db_config,
+            phase_config,
+            output_dir,
+            skip_ingestion=args.skip_ingestion,
+            use_real_embeddings=args.use_real_embeddings,
         )
         all_results.append(result)
 

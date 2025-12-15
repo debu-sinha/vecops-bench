@@ -223,3 +223,65 @@ def optimal_batch_size_for_db(db_name: str) -> int:
         "faiss": 50000,  # In-memory, can handle large batches
     }
     return optimal_sizes.get(db_name.lower(), 5000)
+
+
+def stream_cohere_wikipedia(
+    num_vectors: int,
+    batch_size: int = 10000,
+) -> Generator[Tuple[List[str], List[List[float]]], None, None]:
+    """
+    Stream Cohere Wikipedia embeddings from HuggingFace.
+
+    This provides 35M+ pre-computed 768-dimensional embeddings from Wikipedia,
+    which are real-world embeddings (not random vectors).
+
+    Source: https://huggingface.co/datasets/Cohere/wikipedia-22-12-en-embeddings
+
+    Args:
+        num_vectors: Total number of vectors to load
+        batch_size: Vectors per batch
+
+    Yields:
+        Tuple of (ids, vectors) for each batch
+    """
+    from datasets import load_dataset
+
+    print(f"  Streaming Cohere Wikipedia embeddings ({num_vectors:,} vectors)...")
+    print("  Source: Cohere/wikipedia-22-12-en-embeddings (HuggingFace)")
+
+    dataset = load_dataset(
+        "Cohere/wikipedia-22-12-en-embeddings",
+        split="train",
+        streaming=True,
+    )
+
+    batch_ids = []
+    batch_vectors = []
+    count = 0
+
+    for sample in dataset:
+        if count >= num_vectors:
+            break
+
+        # Cohere Wikipedia format: 'emb' column for embeddings
+        embedding = sample["emb"]
+
+        # Normalize for cosine similarity
+        norm = np.linalg.norm(embedding)
+        if norm > 0:
+            embedding = [x / norm for x in embedding]
+
+        batch_ids.append(f"wiki_{sample.get('id', count)}")
+        batch_vectors.append(embedding)
+        count += 1
+
+        if len(batch_ids) >= batch_size:
+            yield batch_ids, batch_vectors
+            batch_ids = []
+            batch_vectors = []
+
+    # Yield remaining
+    if batch_ids:
+        yield batch_ids, batch_vectors
+
+    print(f"  Streamed {count:,} real embeddings (768 dimensions)")

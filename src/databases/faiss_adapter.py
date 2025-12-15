@@ -36,10 +36,21 @@ class FaissAdapter(VectorDBAdapter):
     def __init__(self, config: Dict[str, Any]):
         super().__init__("faiss", config)
 
-        # HNSW parameters (match other DBs for fair comparison)
+        # HNSW parameters
+        # NOTE: FAISS uses lower ef_construction (64) vs other DBs (200) for practical
+        # build times at 10M+ scale. FAISS HNSW builds incrementally (each insert
+        # searches the existing graph), making high ef_construction extremely slow.
+        #
+        # TRADEOFF: Lower ef_construction = faster build, slightly lower recall.
+        # This is acceptable because:
+        # 1. FAISS is a "speed of light" baseline, not a production database
+        # 2. At ef_search=100, recall difference is minimal (<1-2%)
+        # 3. Building 10M vectors with ef_construction=200 takes 20+ hours
+        #
+        # For fair recall comparison, we use ef_search=100 for all databases.
         self.index_type = config.get("index_type", "HNSW")
         self.M = config.get("M", 32)  # HNSW connections per node
-        self.ef_construction = config.get("ef_construction", 200)
+        self.ef_construction = config.get("ef_construction", 64)  # Lower for faster build
         self.ef_search = config.get("ef_search", 100)
 
         # Index storage

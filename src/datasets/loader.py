@@ -367,6 +367,81 @@ class MTEBLoader(DatasetLoader):
         return documents, queries
 
 
+class CohereWikipediaLoader:
+    """
+    Loader for Cohere Wikipedia embeddings from HuggingFace.
+
+    This provides 35M+ pre-computed 768-dimensional embeddings from Wikipedia,
+    which is ideal for benchmarking vector databases at scale.
+
+    Source: https://huggingface.co/datasets/Cohere/wikipedia-22-12-en-embeddings
+    """
+
+    def __init__(self, cache_dir: str = "./data/cache"):
+        self.cache_dir = Path(cache_dir)
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+
+    def load(
+        self,
+        num_vectors: int = 1_000_000,
+        num_queries: int = 1000,
+        seed: int = 42,
+    ) -> Tuple[np.ndarray, np.ndarray, List[str], List[str]]:
+        """
+        Load pre-computed Cohere Wikipedia embeddings.
+
+        Args:
+            num_vectors: Number of document vectors to load
+            num_queries: Number of query vectors (sampled from docs)
+            seed: Random seed for reproducibility
+
+        Returns:
+            Tuple of (doc_vectors, query_vectors, doc_ids, query_ids)
+            - doc_vectors: np.ndarray of shape (num_vectors, 768)
+            - query_vectors: np.ndarray of shape (num_queries, 768)
+            - doc_ids: List of document IDs
+            - query_ids: List of query IDs
+        """
+        from datasets import load_dataset as hf_load_dataset
+
+        print(f"Loading Cohere Wikipedia embeddings ({num_vectors:,} vectors)...")
+        print("  Source: Cohere/wikipedia-22-12-en-embeddings (HuggingFace)")
+
+        # Load dataset in streaming mode for memory efficiency
+        dataset = hf_load_dataset(
+            "Cohere/wikipedia-22-12-en-embeddings",
+            split="train",
+            streaming=True,
+        )
+
+        vectors = []
+        doc_ids = []
+        rng = np.random.default_rng(seed)
+
+        # Load vectors
+        for i, item in enumerate(tqdm(dataset, total=num_vectors, desc="Loading embeddings")):
+            if i >= num_vectors:
+                break
+            vectors.append(item["emb"])
+            doc_ids.append(f"wiki_{item.get('id', i)}")
+
+        vectors = np.array(vectors, dtype=np.float32)
+
+        # Normalize for cosine similarity
+        norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+        vectors = vectors / norms
+
+        # Sample queries from the document set
+        query_indices = rng.choice(len(vectors), size=min(num_queries, len(vectors)), replace=False)
+        query_vectors = vectors[query_indices].copy()
+        query_ids = [f"query_{i}" for i in range(len(query_indices))]
+
+        print(f"  Loaded {len(vectors):,} document vectors (768 dimensions)")
+        print(f"  Sampled {len(query_vectors):,} query vectors")
+
+        return vectors, query_vectors, doc_ids, query_ids
+
+
 def load_dataset(
     name: str,
     source: str = "beir",
