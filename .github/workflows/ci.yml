@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install black flake8 mypy isort
+          pip install black==23.12.1 flake8 mypy isort
 
       - name: Check formatting (black)
         run: black --check --line-length 100 src/ scripts/
