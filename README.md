@@ -71,13 +71,22 @@ python scripts/run_benchmark_v2.py --scale 10000000 --database qdrant pgvector
 
 | Database | Version | Index | Notes |
 |----------|---------|-------|-------|
-| [FAISS](https://github.com/facebookresearch/faiss) | CPU | HNSW | In-memory baseline |
+| [FAISS](https://github.com/facebookresearch/faiss) | CPU | HNSW | **Speed-of-light baseline** (see below) |
 | [Elasticsearch](https://www.elastic.co/) | 8.11.0 | HNSW (Lucene) | Full-text + vector |
 | [Milvus](https://milvus.io/) | 2.3.4 | HNSW | Distributed |
 | [Qdrant](https://qdrant.tech/) | 1.16.0 | HNSW | Rust-based |
 | [pgvector](https://github.com/pgvector/pgvector) | **0.8.0+** | HNSW | PostgreSQL extension |
 | [Chroma](https://www.trychroma.com/) | 0.6.3 | HNSW | Lightweight |
 | [Weaviate](https://weaviate.io/) | 1.27.0 | HNSW | GraphQL-native |
+
+### FAISS Baseline Note
+
+FAISS is included as a **theoretical "speed of light" baseline** for latency/QPS, not as a production database competitor:
+
+- **Purpose**: Establishes minimum achievable latency for HNSW search (no network, no persistence overhead)
+- **Limitations**: No crash recovery, no filtering, no persistence - not a production database
+- **Configuration**: Uses `ef_construction=64` (vs 200 for DBs) for practical build times at 10M+ scale
+- **Comparison**: FAISS latency results show the overhead each database adds; recall comparisons exclude FAISS due to different index parameters
 
 ---
 
