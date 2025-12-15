@@ -59,6 +59,10 @@ from src.stats import (
     generate_latex_table,
 )
 from src.analysis import capture_pgvector_query_plan, capture_generic_timing
+from src.operational import (
+    RuntimeComplexityProber,
+    compute_runtime_complexity_score,
+)
 
 
 # =============================================================================
@@ -779,6 +783,24 @@ def run_full_benchmark(
                 conn.close()
             except Exception as e:
                 results["query_plan"] = {"error": str(e)}
+
+        # Operational complexity (RUNTIME MEASURED, not hardcoded)
+        # This probes the actual Docker container to get real metrics
+        print("  Measuring operational complexity...")
+        try:
+            prober = RuntimeComplexityProber()
+            container_name = f"{db_name}-benchmark"  # Convention
+            runtime_metrics = prober.probe_container(container_name, db_name)
+            complexity_score = compute_runtime_complexity_score(runtime_metrics)
+            results["operational_complexity"] = complexity_score
+            print(f"    Complexity score: {complexity_score['overall_score']}/100 (MEASURED)")
+        except Exception as e:
+            # Container may not be running (e.g., embedded faiss)
+            results["operational_complexity"] = {
+                "error": str(e),
+                "note": "Runtime measurement failed - container may not be running"
+            }
+            print(f"    Complexity measurement skipped: {e}")
 
         results["status"] = "success"
 
