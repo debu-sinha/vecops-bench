@@ -2,8 +2,8 @@
 
 **Production-Oriented Benchmarking for Vector Database Systems**
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17924957.svg)](https://doi.org/10.5281/zenodo.17924957)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Paper](https://img.shields.io/badge/Paper-arXiv-red.svg)](https://arxiv.org/)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
 > A comprehensive benchmark suite for evaluating vector databases beyond recall-latency trade-offs. Introduces novel production-relevant metrics: **cold start latency**, **operational complexity**, and **filtered search overhead**.
@@ -184,13 +184,19 @@ vectordb-bench/
 If you use VectorDB-Bench in your research, please cite:
 
 ```bibtex
-@article{sinha2025vectordbbench,
-  title={VectorDB-Bench: A Production-Oriented Benchmark Suite for Vector Database Systems},
-  author={Sinha, Debu},
-  journal={arXiv preprint},
-  year={2025}
+@software{sinha2025vectordbbench,
+  author       = {Sinha, Debu},
+  title        = {{VectorDB-Bench: A Production-Oriented Benchmark
+                   Suite for Vector Database Systems}},
+  month        = dec,
+  year         = 2025,
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.17924957},
+  url          = {https://doi.org/10.5281/zenodo.17924957}
 }
 ```
+
+**Paper:** [VectorDB-Bench on Zenodo](https://zenodo.org/records/17924957)
 
 ---
 
