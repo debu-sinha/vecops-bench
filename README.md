@@ -1,89 +1,225 @@
-# VectorDB-Bench: Production-Oriented Vector Database Evaluation
+# VectorDB-Bench
 
-**Target Venue:** MLSys 2026 / SIGMOD 2026
-**Status:** Planning
-**Author:** Debu Sinha
+**Production-Oriented Benchmarking for Vector Database Systems**
 
-## Abstract
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Paper](https://img.shields.io/badge/Paper-arXiv-red.svg)](https://arxiv.org/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-A comprehensive benchmark for vector databases focusing on production-realistic evaluation dimensions beyond recall/latency: hybrid search accuracy, metadata filtering, cold-start performance, operational complexity, and cost modeling.
+> A comprehensive benchmark suite for evaluating vector databases beyond recall-latency trade-offs. Introduces novel production-relevant metrics: **cold start latency**, **operational complexity**, and **filtered search overhead**.
 
-## Databases Under Evaluation
+---
 
-| Database | Deployment | Free Tier |
-|----------|------------|-----------|
-| Pinecone | Cloud | Yes (starter) |
-| Milvus | Self-hosted (Docker) | Yes |
-| Qdrant | Cloud + Self-hosted | Yes |
-| pgvector | Self-hosted (PostgreSQL) | Yes |
-| Chroma | Self-hosted | Yes |
-| Weaviate | Cloud + Self-hosted | Yes |
+## Key Findings
 
-## Evaluation Dimensions
+Our evaluation of 5 vector databases on MS MARCO 100K reveals:
 
-### Standard Metrics (Baseline)
-- Recall@k (k=1, 10, 100)
-- Queries per second (QPS)
-- Latency (p50, p95, p99)
+| Database | Recall@10 | p50 Latency | QPS | Cold Start | Insert/s |
+|----------|-----------|-------------|-----|------------|----------|
+| **Milvus** | 0.537 | 3.86ms | 101 | 17ms | 10,279 |
+| **Qdrant** | 0.537 | 5.27ms | 309 | 70ms | 1,411 |
+| **pgvector** | 0.545 | 3.74ms | 398 | **14ms** | 164 |
+| **Chroma** | 0.537 | 4.42ms | 324 | 65ms | 1,744 |
+| **Weaviate** | 0.537 | 4.49ms | **436** | 109ms | 2,911 |
 
-### Production Metrics (Novel)
-- **Hybrid Search Accuracy**: Dense + sparse retrieval performance
-- **Filtered Search Latency**: Metadata filtering impact on performance
-- **Cold-Start Time**: Time to first query after index load
-- **Index Build Cost**: Time and memory for index construction
-- **Operational Complexity Score**: Deployment, monitoring, backup difficulty
-- **Cost per 1M Queries**: Normalized cost comparison
+### Surprising Results
 
-## Datasets
+- **8x cold start variation**: pgvector (14ms) vs Weaviate (109ms)
+- **100x filtered search overhead variation**: pgvector (-31%) vs Chroma (+2,978%)
+- **No universal winner**: Each database excels in different dimensions
 
-- MTEB Retrieval Tasks
-- BEIR Benchmark
-- MS MARCO Passages
-- Custom synthetic workloads
+---
+
+## Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/debu-sinha/vectordb-bench.git
+cd vectordb-bench
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# venv\Scripts\activate   # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run benchmark (single database)
+python scripts/run_benchmark.py --config experiments/config.yaml --database pgvector
+
+# Run all databases
+python scripts/run_benchmark.py --config experiments/config.yaml
+```
+
+---
+
+## Databases Evaluated
+
+| Database | Version | Index Type | Architecture |
+|----------|---------|------------|--------------|
+| [Milvus](https://milvus.io/) | 2.3.x | IVF_FLAT, HNSW | Distributed, cloud-native |
+| [Qdrant](https://qdrant.tech/) | 1.7.x | HNSW | Rust-based, single/cluster |
+| [pgvector](https://github.com/pgvector/pgvector) | 0.5.x | IVFFlat, HNSW | PostgreSQL extension |
+| [Weaviate](https://weaviate.io/) | 1.22.x | HNSW | GraphQL-native, modular |
+| [Chroma](https://www.trychroma.com/) | 0.4.x | HNSW | Embedded-first, Python-native |
+
+---
+
+## Metrics
+
+### Standard Metrics
+- **Recall@k**: Fraction of relevant documents in top-k results
+- **Latency**: p50, p95, p99 query latency
+- **QPS**: Sustained queries per second under load
+
+### Novel Production Metrics
+
+| Metric | Description | Why It Matters |
+|--------|-------------|----------------|
+| **Cold Start Latency** | Time from container start to first successful query | Critical for serverless/Lambda deployments |
+| **Operational Complexity** | Measurable deployment artifacts (services, config params, metrics) | Impacts maintenance burden and TCO |
+| **Filtered Search Overhead** | Latency change when adding metadata filters | Most real queries combine vectors + filters |
+| **Insert Throughput** | Vectors indexed per second during bulk load | Important for data ingestion pipelines |
+
+---
+
+## Results Deep Dive
+
+### Cold Start Performance
+
+```
+pgvector   ████████████████ 14.3ms (fastest)
+Milvus     █████████████████ 17.0ms
+Chroma     ██████████████████████████████████████████████████████████████████ 65.2ms
+Qdrant     ███████████████████████████████████████████████████████████████████████ 69.5ms
+Weaviate   ████████████████████████████████████████████████████████████████████████████████████████████████████████████ 109.2ms (slowest)
+```
+
+### Operational Complexity
+
+| Database | Required Services | Config Params | Docker Images | Prometheus Metrics | Score |
+|----------|-------------------|---------------|---------------|-------------------|-------|
+| Qdrant | 1 | 12 | 1 | 42 | **8.9** (simplest) |
+| Weaviate | 1 | 23 | 1 | 67 | 24.5 |
+| pgvector | 1 | 8 | 1 | 156 | 27.5 |
+| Milvus | 4 | 47 | 3 | 89 | 40.3 (most complex) |
+| Chroma | 1 | 6 | 1 | 12 | 43.8 |
+
+### Filtered Search Overhead
+
+| Database | Overhead | Notes |
+|----------|----------|-------|
+| pgvector | **-31%** | *Faster with filters* (PostgreSQL optimizer) |
+| Qdrant | +347% | Pre-filtering approach |
+| Chroma | +2,978% | Falls back to full scan |
+
+---
+
+## Recommendations by Use Case
+
+| Use Case | Recommended | Why |
+|----------|-------------|-----|
+| **Serverless/Lambda** | pgvector | Fastest cold start (14ms) |
+| **High Throughput** | Weaviate | Highest QPS (436) |
+| **Minimal Ops** | Qdrant | Lowest complexity score (8.9) |
+| **Bulk Ingestion** | Milvus | Fastest insert (10K vec/s) |
+| **Existing PostgreSQL** | pgvector | Seamless integration |
+| **Rapid Prototyping** | Chroma | Simplest API |
+
+---
+
+## Reproducibility
+
+### Hardware Configuration
+- **Instance**: AWS c5.2xlarge (8 vCPU, 16GB RAM)
+- **Deployment**: Docker containers with pinned versions
+- **Trials**: 5 runs per configuration
+- **Warm-up**: 100 queries before measurement
+
+### Dataset
+- **MS MARCO Passage Ranking** (100K subset)
+- **Embeddings**: sentence-transformers/all-mpnet-base-v2 (768 dimensions)
+
+### Run Full Benchmark
+
+```bash
+# Start all databases
+docker-compose up -d
+
+# Run complete benchmark suite
+python scripts/run_benchmark.py --config experiments/full_config.yaml
+
+# Generate figures
+python scripts/generate_figures.py --results results/
+
+# Results saved to results/ directory
+```
+
+---
 
 ## Project Structure
 
 ```
 vectordb-bench/
-├── src/                    # Core benchmarking code
-│   ├── databases/          # Database-specific adapters
-│   ├── metrics/            # Metric computation
-│   ├── workloads/          # Workload generators
-│   └── utils/              # Utilities
-├── experiments/            # Experiment configurations
-├── data/                   # Downloaded datasets
-├── results/                # Benchmark results
-├── paper/                  # LaTeX paper draft
-└── scripts/                # Setup and run scripts
+├── src/
+│   ├── databases/          # Database adapters (Milvus, Qdrant, etc.)
+│   ├── metrics/            # Metric computation modules
+│   ├── workloads/          # Query workload generators
+│   └── utils/              # Utilities and helpers
+├── experiments/            # YAML experiment configurations
+├── scripts/                # Benchmark runner scripts
+├── results/                # Raw benchmark results (JSON)
+├── paper/                  # LaTeX paper source
+│   ├── paper_outline.tex   # Main paper
+│   ├── references.bib      # Bibliography
+│   └── figures/            # Publication figures
+└── paper_figures/          # Generated visualizations
 ```
 
-## Setup
+---
 
-```bash
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+## Citation
 
-# Install dependencies
-pip install -r requirements.txt
+If you use VectorDB-Bench in your research, please cite:
 
-# Run benchmarks
-python scripts/run_benchmark.py --config experiments/config.yaml
+```bibtex
+@article{sinha2025vectordbbench,
+  title={VectorDB-Bench: A Production-Oriented Benchmark Suite for Vector Database Systems},
+  author={Sinha, Debu},
+  journal={arXiv preprint},
+  year={2025}
+}
 ```
 
-## Timeline
+---
 
-- [ ] Set up database adapters
-- [ ] Implement standard metrics
-- [ ] Implement production metrics
-- [ ] Run baseline experiments
-- [ ] Analyze results
-- [ ] Write paper draft
+## Contributing
 
-## Budget
+We welcome contributions! Areas of interest:
 
-Estimated cost: $100-200 (cloud overflow only)
+- [ ] Additional database adapters (Pinecone, Elasticsearch, OpenSearch)
+- [ ] Distributed/cluster mode benchmarks
+- [ ] Larger scale experiments (1M+ vectors)
+- [ ] Cost-per-query modeling for cloud deployments
+- [ ] Hybrid search (dense + sparse) evaluation
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) for details.
+
+---
+
+## Acknowledgments
+
+- MS MARCO dataset from Microsoft Research
+- BEIR benchmark framework
+- sentence-transformers library
+
+---
+
+**Questions?** Open an [issue](https://github.com/debu-sinha/vectordb-bench/issues) or start a [discussion](https://github.com/debu-sinha/vectordb-bench/discussions).
