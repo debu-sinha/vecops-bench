@@ -1,7 +1,7 @@
 # VecOps-Bench v2.0 - Industrial Strength Testing Plan
 
 **Target Venues**: SIGMOD, VLDB, ICDE
-**EB-1A Claim**: "Original Contribution of Major Significance"
+**Novel Contribution**: First benchmark to measure temporal drift in vector databases
 **Core Thesis**: "Current benchmarks measure Day 1 speed; VecOps measures Day 2 survival."
 **Last Updated**: 2025-12-15
 
@@ -111,7 +111,7 @@ This benchmark differentiates from existing work (ann-benchmarks, VectorDBBench)
 > "HNSW graphs degrade under churn. Systems with background vacuuming (pgvector)
 > may remain stable, while others see recall drop from 95% to 80%."
 
-**This finding is the "Original Contribution of Major Significance" for EB-1A.**
+**This finding is the key novel contribution of the paper.**
 
 ---
 
@@ -249,7 +249,7 @@ Score = Recall@10 / Hourly Infrastructure Cost
 
 ## Part 11: Success Criteria
 
-For EB-1A "Original Contribution of Major Significance":
+Success Criteria:
 
 - [ ] Demonstrate drift degradation that no prior paper has shown
 - [ ] Publish at SIGMOD/VLDB/ICDE (acceptance = peer validation)

@@ -11,7 +11,7 @@ Methodology (from test plan):
 3. Repeat for 10 cycles (1M total churned = 10% turnover)
 4. Measure Recall@10 and P99 Latency after EACH cycle
 
-This is the "Original Contribution of Major Significance" for EB-1A.
+This is the key novel contribution of the benchmark.
 """
 
 import argparse
