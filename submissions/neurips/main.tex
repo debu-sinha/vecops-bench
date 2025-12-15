@@ -1,0 +1,249 @@
+% VectorDB-Bench: Production-Oriented Benchmarking of Vector Databases
+% NeurIPS Datasets & Benchmarks Track 2025
+% Author: Debu Sinha
+
+\documentclass{article}
+
+% NeurIPS 2025 style
+\usepackage[final]{neurips_2025}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{nicefrac}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\title{VectorDB-Bench: A Production-Oriented Benchmark Suite for Vector Database Systems}
+
+\author{%
+  Debu Sinha \\
+  Independent Researcher\\
+  New Jersey, USA \\
+  \texttt{debusinha2009@gmail.com} \\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Vector databases have become critical infrastructure for AI/ML applications,
+powering semantic search, recommendation systems, and retrieval-augmented generation (RAG).
+While existing benchmarks such as ann-benchmarks focus on algorithmic recall-latency trade-offs,
+practitioners deploying these systems in production face additional challenges:
+cold start latency in serverless environments, operational complexity during deployment
+and maintenance, and filtered search performance when combining vector similarity with metadata constraints.
+
+We present VectorDB-Bench, a benchmark suite that evaluates five vector databases
+(Milvus, Qdrant, pgvector, Weaviate, Chroma) across production-relevant dimensions
+typically absent from algorithm-focused benchmarks. Our contributions include:
+(1) cold start latency measurement methodology for serverless and auto-scaling scenarios,
+(2) a quantifiable operational complexity framework based on measurable deployment artifacts,
+and (3) filtered search overhead quantification revealing architectural trade-offs.
+
+Our evaluation on MS MARCO passages reveals significant variations obscured by recall-focused benchmarks:
+under single-node deployment, cold start latency varies 8$\times$ (14ms to 109ms),
+filtered search overhead spans from 31\% \emph{improvement} to 2,978\% degradation,
+and operational complexity (measured by required services, configuration parameters,
+and deployment steps) differs by 5$\times$ across systems.
+We release VectorDB-Bench as open source to enable reproducible evaluation
+and data-driven technology selection for production deployments.
+\end{abstract}
+
+
+\section{Introduction}
+
+The rise of large language models and semantic AI has created unprecedented demand
+for efficient vector similarity search. Vector databases, which index high-dimensional
+embeddings for approximate nearest neighbor (ANN) retrieval, have become essential
+infrastructure for applications including semantic search, recommendation systems,
+retrieval-augmented generation (RAG) for LLMs, duplicate detection, and image/video similarity search.
+
+While the research community has developed excellent benchmarks for ANN algorithms
+(ann-benchmarks, BEIR), there remains a significant gap in production-oriented
+evaluation of vector database \emph{systems}. Practitioners must make deployment
+decisions considering: (1) \textbf{Cold start performance}: time to first query after deployment,
+critical for serverless and auto-scaling scenarios; (2) \textbf{Operational complexity}: deployment difficulty,
+monitoring capabilities, maintenance burden; (3) \textbf{Filtered search}: combined vector + metadata filtering performance.
+
+We address these gaps with VectorDB-Bench, making the following contributions:
+\begin{itemize}
+    \item A comprehensive benchmark suite evaluating 5 leading vector databases
+          across production-relevant metrics under single-node deployment
+    \item Novel metrics including cold start latency measurement methodology,
+          quantifiable operational complexity framework, and filtered search overhead
+    \item Rigorous evaluation methodology with multiple trials (5 per configuration)
+          and statistical analysis including confidence intervals
+    \item Open-source release enabling reproducible research and community extension
+\end{itemize}
+
+
+\section{Related Work}
+
+\textbf{ANN Algorithm Benchmarks.} ann-benchmarks provides the de facto standard for
+comparing ANN algorithms, evaluating recall vs. queries-per-second across diverse
+datasets but focusing on algorithms rather than complete database systems.
+BEIR establishes zero-shot information retrieval benchmarks with diverse domain datasets.
+
+\textbf{Vector Database Benchmarks.} Recent surveys highlight the rapid proliferation
+of vector database systems, with over 20 commercial solutions emerging in the past five years.
+Existing database-level benchmarks often lack standardized methodology across vendors,
+production-oriented metrics (cold start, ops complexity), and statistical rigor with multiple trials.
+
+\textbf{Systems Benchmarks.} TPC benchmarks provide production-relevant evaluation for traditional
+databases, including cost metrics. We adapt this philosophy for vector databases.
+
+
+\section{Benchmark Design}
+
+\subsection{Evaluated Systems}
+
+We evaluate five leading open-source vector databases representing different architectural approaches:
+\textbf{Milvus} (IVF\_FLAT/HNSW, distributed cloud-native),
+\textbf{Qdrant} (HNSW, Rust-based single-node/cluster),
+\textbf{pgvector} (IVFFlat/HNSW, PostgreSQL extension),
+\textbf{Weaviate} (HNSW, GraphQL-native modular), and
+\textbf{Chroma} (HNSW, embedded-first Python-native).
+
+\subsection{Datasets}
+
+We use standard BEIR benchmark datasets:
+\textbf{MS MARCO Passage} (8.8M passages, subsampled to 100K-1M),
+\textbf{NFCorpus} (3.6K documents, medical domain), and
+\textbf{SciFact} (5K claims, scientific verification).
+All documents are embedded using sentence-transformers/all-mpnet-base-v2 (768 dimensions).
+
+\subsection{Metrics}
+
+\textbf{Standard Metrics:} Recall@k, NDCG@k, latency (p50, p95, p99), and QPS.
+
+\textbf{Novel Production Metrics:}
+\begin{itemize}
+    \item \textbf{Cold Start Latency}: Time from container start to first successful query
+    \item \textbf{Operational Complexity Score}: Composite based on measurable deployment artifacts
+    \item \textbf{Filtered Search Overhead}: Latency increase with metadata filters
+    \item \textbf{Insert Throughput}: Vectors indexed per second during bulk load
+\end{itemize}
+
+\subsection{Experimental Setup}
+
+Hardware: AWS c5.2xlarge (8 vCPU, 16GB RAM). Deployment: Docker containers with pinned versions.
+Trials: 5 runs per configuration. Warm-up: 100 queries before measurement.
+
+
+\section{Results}
+
+\subsection{Main Results}
+
+\begin{table}[h]
+\centering
+\caption{Benchmark Results (MS MARCO 100K, averaged across trials)}
+\label{tab:main_results}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Database} & \textbf{Recall@10} & \textbf{p50 (ms)} & \textbf{QPS} & \textbf{Cold Start} & \textbf{Insert/s} \\
+\midrule
+Milvus & 0.537 & 3.86 & 101 & 17ms & 10,279 \\
+Qdrant & 0.537 & 5.27 & 309 & 70ms & 1,411 \\
+pgvector & 0.545 & 3.74 & 398 & 14ms & 164 \\
+Chroma & 0.537 & 4.42 & 324 & 65ms & 1,744 \\
+Weaviate & 0.537 & 4.49 & 436 & 109ms & 2,911 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All databases achieve comparable recall ($\approx$0.54), indicating well-optimized ANN indices.
+Key differentiators emerge in latency, throughput, and operational metrics.
+
+\subsection{Cold Start Performance}
+
+Results reveal an \textbf{8$\times$ variation} in cold start latency:
+pgvector (14.3ms $\pm$ 0.3ms, fastest),
+Milvus (17.0ms $\pm$ 4.3ms),
+Chroma (65.2ms $\pm$ 0.6ms),
+Qdrant (69.5ms $\pm$ 1.1ms), and
+Weaviate (109.2ms $\pm$ 2.9ms, slowest).
+This has significant implications for serverless architectures.
+
+\subsection{Operational Complexity}
+
+We developed an operational complexity framework based on measurable deployment artifacts:
+
+\begin{table}[h]
+\centering
+\caption{Operational Complexity Metrics}
+\label{tab:ops_metrics}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Metric} & \textbf{Milvus} & \textbf{Qdrant} & \textbf{pgvector} & \textbf{Weaviate} & \textbf{Chroma} \\
+\midrule
+Required services & 4 & 1 & 1 & 1 & 1 \\
+Config parameters & 47 & 12 & 8 & 23 & 6 \\
+Docker images & 3 & 1 & 1 & 1 & 1 \\
+Prometheus metrics & 89 & 42 & 156 & 67 & 12 \\
+\midrule
+\textbf{Complexity Score} & 40.3 & 8.9 & 27.5 & 24.5 & 43.8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Filtered Search Performance}
+
+The dramatic variation reveals fundamental architectural differences:
+\textbf{pgvector} benefits from PostgreSQL's mature query optimizer ($-31\%$ overhead, \emph{faster with filters}),
+\textbf{Qdrant} uses pre-filtering ($+347\%$ overhead), and
+\textbf{Chroma} appears to fall back to full scan ($+2,978\%$ overhead).
+
+
+\section{Discussion}
+
+\textbf{Key Findings:}
+(1) No single winner: each database excels in different dimensions;
+(2) Cold start varies 8$\times$: critical for serverless (14ms to 109ms);
+(3) Operational complexity inversely correlates with features;
+(4) Filtered search reveals architectural trade-offs (2,978\% overhead vs. 31\% improvement).
+
+\textbf{Recommendations:}
+\emph{Serverless/Lambda}: pgvector (fastest cold start);
+\emph{High throughput}: Weaviate (highest QPS);
+\emph{Minimal ops}: Qdrant (lowest complexity);
+\emph{Bulk ingestion}: Milvus (fastest insert);
+\emph{Existing PostgreSQL}: pgvector (seamless integration);
+\emph{Rapid prototyping}: Chroma (simplest API, but avoid if filtered search needed).
+
+\textbf{Limitations:}
+(1) Single-node evaluation only---Milvus and Qdrant are designed for distributed settings;
+(2) Hardware specificity (AWS c5.2xlarge);
+(3) Dataset scale (100K vectors);
+(4) Operational complexity weights reflect practitioner surveys;
+(5) Default index configurations used.
+
+
+\section{Conclusion}
+
+We presented VectorDB-Bench, a production-oriented benchmark suite for vector database systems.
+Our evaluation reveals no universal winner: cold start varies 8$\times$ (14-109ms),
+filtered search overhead varies 100$\times$ ($-31\%$ to $+2,978\%$), and operational complexity
+is quantifiable through measurable deployment artifacts.
+
+We release VectorDB-Bench as open source at \url{https://github.com/debu-sinha/vectordb-bench}
+to enable reproducible research and informed technology selection.
+
+
+\section*{Acknowledgments}
+
+We thank the open-source communities behind Milvus, Qdrant, pgvector, Weaviate,
+and Chroma for their excellent documentation and responsive support.
+We also acknowledge the MS MARCO dataset team at Microsoft Research
+and the sentence-transformers library maintainers.
+
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}
