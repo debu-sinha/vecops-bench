@@ -7,6 +7,8 @@ from .pgvector_adapter import PgvectorAdapter
 from .milvus_adapter import MilvusAdapter
 from .pinecone_adapter import PineconeAdapter
 from .weaviate_adapter import WeaviateAdapter
+from .faiss_adapter import FaissAdapter
+from .elasticsearch_adapter import ElasticsearchAdapter
 
 __all__ = [
     "VectorDBAdapter",
@@ -18,6 +20,8 @@ __all__ = [
     "MilvusAdapter",
     "PineconeAdapter",
     "WeaviateAdapter",
+    "FaissAdapter",
+    "ElasticsearchAdapter",
 ]
 
 
@@ -30,6 +34,8 @@ def get_adapter(db_name: str, config: dict) -> VectorDBAdapter:
         "milvus": MilvusAdapter,
         "pinecone": PineconeAdapter,
         "weaviate": WeaviateAdapter,
+        "faiss": FaissAdapter,
+        "elasticsearch": ElasticsearchAdapter,
     }
 
     if db_name.lower() not in adapters:
