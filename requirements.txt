@@ -3,7 +3,7 @@
 # =============================================================================
 #
 # IMPORTANT: All versions are pinned for reproducible benchmarking.
-# Last tested: 2024-01 on Python 3.11
+# Last tested: 2025-12 on Python 3.12
 #
 # Install: pip install -r requirements.txt
 # =============================================================================
