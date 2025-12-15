@@ -1,0 +1,296 @@
+% VectorDB-Bench: Production-Oriented Benchmarking of Vector Databases
+% Paper Outline for Academic Submission
+% Author: Debu Sinha <debusinha2009@gmail.com>
+
+\documentclass[sigconf,review,anonymous=false]{acmart}
+
+% Packages
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{balance}
+\usepackage{hyperref}
+
+% Metadata
+\title{VectorDB-Bench: A Production-Oriented Benchmark Suite for\\Vector Database Systems}
+
+\author{Debu Sinha}
+\email{debusinha2009@gmail.com}
+\affiliation{%
+  \institution{Independent Researcher}
+  \city{New York}
+  \country{USA}
+}
+
+\begin{abstract}
+Vector databases have become critical infrastructure for AI/ML applications,
+powering semantic search, recommendation systems, and retrieval-augmented generation (RAG).
+While existing benchmarks focus primarily on recall-latency trade-offs,
+production deployments require understanding of additional dimensions including
+cold start performance, operational complexity, filtered search efficiency,
+and cost-per-query economics.
+
+We present VectorDB-Bench, a comprehensive benchmark suite that evaluates
+five leading vector databases (Milvus, Qdrant, pgvector, Weaviate, Chroma)
+across production-relevant metrics. Our novel contributions include:
+(1) cold start latency measurement for serverless scenarios,
+(2) operational complexity scoring framework,
+(3) filtered search overhead quantification, and
+(4) cost-per-query modeling for cloud deployments.
+
+Our evaluation on standard BEIR datasets (MS MARCO, NFCorpus, SciFact) with
+100K-1M vectors reveals significant performance variations: [PLACEHOLDER: key findings].
+We release VectorDB-Bench as open source to enable reproducible research and
+informed technology selection for production deployments.
+\end{abstract}
+
+\keywords{vector databases, benchmarking, similarity search, production systems, ANN}
+
+\begin{document}
+
+\maketitle
+
+% =============================================================================
+% SECTION 1: INTRODUCTION
+% =============================================================================
+\section{Introduction}
+
+% Problem statement
+The rise of large language models and semantic AI has created unprecedented demand
+for efficient vector similarity search. Vector databases, which index high-dimensional
+embeddings for approximate nearest neighbor (ANN) retrieval, have become essential
+infrastructure for applications including:
+\begin{itemize}
+    \item Semantic search and information retrieval
+    \item Recommendation systems
+    \item Retrieval-augmented generation (RAG) for LLMs
+    \item Duplicate detection and clustering
+    \item Image/video similarity search
+\end{itemize}
+
+% Motivation: Gaps in existing benchmarks
+While the research community has developed excellent benchmarks for ANN algorithms
+(ann-benchmarks, BEIR), there remains a significant gap in production-oriented
+evaluation of vector database \emph{systems}. Practitioners must make deployment
+decisions considering:
+\begin{enumerate}
+    \item \textbf{Cold start performance}: Time to first query after deployment,
+          critical for serverless and auto-scaling scenarios
+    \item \textbf{Operational complexity}: Deployment difficulty, monitoring
+          capabilities, maintenance burden
+    \item \textbf{Filtered search}: Combined vector + metadata filtering performance
+    \item \textbf{Cost efficiency}: Queries per dollar at various quality thresholds
+\end{enumerate}
+
+% Contributions
+We address these gaps with VectorDB-Bench, making the following contributions:
+\begin{enumerate}
+    \item A comprehensive benchmark suite evaluating 5 leading vector databases
+          across production-relevant metrics
+    \item Novel metrics including cold start latency, operational complexity scoring,
+          and filtered search overhead
+    \item Rigorous evaluation methodology with multiple trials and statistical analysis
+    \item Open-source release enabling reproducible research
+\end{enumerate}
+
+% =============================================================================
+% SECTION 2: RELATED WORK
+% =============================================================================
+\section{Related Work}
+
+\subsection{ANN Algorithm Benchmarks}
+\textbf{ann-benchmarks}~\cite{annbenchmarks} provides the de facto standard for
+comparing ANN algorithms. It evaluates recall vs. queries-per-second across diverse
+datasets but focuses on algorithms rather than complete database systems.
+
+\textbf{BEIR}~\cite{beir} establishes zero-shot information retrieval benchmarks
+with diverse domain datasets. We leverage BEIR datasets (MS MARCO, NFCorpus, SciFact)
+for consistent evaluation across databases.
+
+\subsection{Vector Database Benchmarks}
+Existing database-level benchmarks include Zilliz's VectorDBBench and individual
+vendor benchmarks. However, these often lack:
+\begin{itemize}
+    \item Standardized methodology across vendors
+    \item Production-oriented metrics (cold start, ops complexity)
+    \item Statistical rigor with multiple trials
+\end{itemize}
+
+\subsection{Systems Benchmarks}
+TPC benchmarks~\cite{tpc} provide production-relevant evaluation for traditional
+databases, including cost metrics. We adapt this philosophy for vector databases.
+
+% =============================================================================
+% SECTION 3: BENCHMARK DESIGN
+% =============================================================================
+\section{Benchmark Design}
+
+\subsection{Evaluated Systems}
+We evaluate five leading open-source vector databases representing different
+architectural approaches:
+
+\begin{table}[h]
+\centering
+\caption{Evaluated Vector Database Systems}
+\label{tab:systems}
+\begin{tabular}{lll}
+\toprule
+\textbf{Database} & \textbf{Index Type} & \textbf{Architecture} \\
+\midrule
+Milvus & IVF\_FLAT, HNSW & Distributed, cloud-native \\
+Qdrant & HNSW & Rust-based, single-node/cluster \\
+pgvector & IVFFlat, HNSW & PostgreSQL extension \\
+Weaviate & HNSW & GraphQL-native, modular \\
+Chroma & HNSW & Embedded-first, Python-native \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Datasets}
+We use standard BEIR benchmark datasets:
+\begin{itemize}
+    \item \textbf{MS MARCO Passage}: 8.8M passages, general domain (subsampled to 100K-1M)
+    \item \textbf{NFCorpus}: 3.6K documents, medical/nutrition domain
+    \item \textbf{SciFact}: 5K claims, scientific fact verification
+\end{itemize}
+
+All documents are embedded using sentence-transformers/all-mpnet-base-v2 (768 dimensions).
+
+\subsection{Metrics}
+
+\subsubsection{Standard Metrics}
+\begin{itemize}
+    \item \textbf{Recall@k}: Fraction of relevant documents retrieved in top-k
+    \item \textbf{NDCG@k}: Normalized discounted cumulative gain
+    \item \textbf{Latency}: p50, p95, p99 query latency
+    \item \textbf{QPS}: Sustained queries per second under load
+\end{itemize}
+
+\subsubsection{Novel Production Metrics}
+\begin{itemize}
+    \item \textbf{Cold Start Latency}: Time from container start to first successful query,
+          measured as mean across 5 restart trials
+    \item \textbf{Operational Complexity Score}: Composite of deployment difficulty (1-100),
+          configuration complexity, monitoring capabilities, maintenance burden
+    \item \textbf{Filtered Search Overhead}: Latency increase when combining vector search
+          with metadata filters
+    \item \textbf{Insert Throughput}: Vectors indexed per second during bulk load
+\end{itemize}
+
+\subsection{Experimental Setup}
+\begin{itemize}
+    \item \textbf{Hardware}: AWS c5.2xlarge (8 vCPU, 16GB RAM)
+    \item \textbf{Deployment}: Docker containers with pinned versions
+    \item \textbf{Trials}: 5 runs per configuration for statistical validity
+    \item \textbf{Warm-up}: 100 queries before measurement
+\end{itemize}
+
+% =============================================================================
+% SECTION 4: RESULTS
+% =============================================================================
+\section{Results}
+
+\subsection{Quality-Performance Trade-offs}
+% Figure 1: Recall@10 vs Latency scatter plot
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=\columnwidth]{figures/fig1_recall_latency.pdf}
+    \caption{Recall@10 vs. p50 latency. Error bars show standard deviation across 5 trials.
+    [PLACEHOLDER: Insert actual figure after experiments complete]}
+    \label{fig:recall_latency}
+\end{figure}
+
+\subsection{Throughput Comparison}
+% Figure 2: QPS bar chart
+[PLACEHOLDER: QPS results with statistical significance]
+
+\subsection{Cold Start Performance (Novel)}
+Cold start latency is critical for serverless deployments and auto-scaling scenarios.
+% Figure 4: Cold start comparison
+[PLACEHOLDER: Cold start results showing wide variation between databases]
+
+\subsection{Operational Complexity (Novel)}
+We developed an operational complexity scoring framework evaluating:
+\begin{itemize}
+    \item Deployment: Docker setup, dependencies, configuration files
+    \item Monitoring: Prometheus metrics, logging, alerting capabilities
+    \item Maintenance: Backup procedures, upgrade paths, data migration
+\end{itemize}
+
+% Figure 5: Radar chart of operational complexity
+[PLACEHOLDER: Operational complexity radar chart]
+
+\subsection{Filtered Search Performance}
+Modern applications often combine vector similarity with metadata filtering.
+We measure overhead when adding category/date filters:
+[PLACEHOLDER: Filter overhead results]
+
+\subsection{Scale Analysis}
+We evaluate performance degradation from 100K to 1M vectors:
+[PLACEHOLDER: Scaling results]
+
+% =============================================================================
+% SECTION 5: DISCUSSION
+% =============================================================================
+\section{Discussion}
+
+\subsection{Key Findings}
+\begin{enumerate}
+    \item \textbf{No single winner}: Each database excels in different dimensions
+    \item \textbf{Cold start varies dramatically}: [PLACEHOLDER: specific findings]
+    \item \textbf{Operational complexity matters}: [PLACEHOLDER: specific findings]
+    \item \textbf{Filtered search not free}: [PLACEHOLDER: overhead percentages]
+\end{enumerate}
+
+\subsection{Recommendations by Use Case}
+\begin{itemize}
+    \item \textbf{Serverless/Lambda}: [Best for cold start]
+    \item \textbf{High throughput}: [Best for QPS]
+    \item \textbf{Existing PostgreSQL}: pgvector for operational simplicity
+    \item \textbf{Prototyping}: Chroma for ease of use
+    \item \textbf{Production scale}: [Best for large deployments]
+\end{itemize}
+
+\subsection{Limitations}
+\begin{itemize}
+    \item Single-node evaluation (distributed modes not tested)
+    \item Specific hardware configuration
+    \item Embedding model fixed (all-mpnet-base-v2)
+\end{itemize}
+
+% =============================================================================
+% SECTION 6: CONCLUSION
+% =============================================================================
+\section{Conclusion}
+
+We presented VectorDB-Bench, a production-oriented benchmark suite for vector
+database systems. Our contributions include novel metrics for cold start latency,
+operational complexity, and filtered search overhead that address gaps in existing
+benchmarks.
+
+Key findings indicate [PLACEHOLDER: main takeaways]. We release VectorDB-Bench
+as open source at \url{https://github.com/debu-sinha/vectordb-bench} to enable
+reproducible research and informed technology selection.
+
+\subsection{Future Work}
+\begin{itemize}
+    \item Distributed/cluster mode evaluation
+    \item Additional databases (Pinecone, Elasticsearch, OpenSearch)
+    \item Temporal drift analysis over corpus evolution
+    \item Cost modeling for cloud deployments
+\end{itemize}
+
+% =============================================================================
+% ACKNOWLEDGMENTS
+% =============================================================================
+\begin{acks}
+[Optional acknowledgments]
+\end{acks}
+
+% =============================================================================
+% REFERENCES
+% =============================================================================
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}

@@ -7,6 +7,7 @@ from .generators import (
     FilteredWorkload,
     SkewedWorkload,
     generate_workload,
+    QueryInstance,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "FilteredWorkload",
     "SkewedWorkload",
     "generate_workload",
+    "QueryInstance",
 ]

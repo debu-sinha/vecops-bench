@@ -82,6 +82,16 @@ class ChromaAdapter(VectorDBAdapter):
             metadata={"hnsw:space": chroma_metric}
         )
 
+    def _get_collection(self, collection_name: str) -> chromadb.Collection:
+        """Get collection, reconnecting if necessary."""
+        if collection_name not in self.collections:
+            # Try to get existing collection from server
+            try:
+                self.collections[collection_name] = self.client.get_collection(collection_name)
+            except Exception:
+                raise ValueError(f"Collection {collection_name} does not exist")
+        return self.collections[collection_name]
+
     def insert_vectors(
         self,
         collection_name: str,
@@ -90,13 +100,10 @@ class ChromaAdapter(VectorDBAdapter):
         metadata: Optional[List[Dict[str, Any]]] = None
     ) -> float:
         """Insert vectors into the collection."""
-        if collection_name not in self.collections:
-            raise ValueError(f"Collection {collection_name} does not exist")
+        collection = self._get_collection(collection_name)
 
-        collection = self.collections[collection_name]
-
-        # ChromaDB has a batch size limit
-        batch_size = 5000
+        # ChromaDB has a batch size limit - use smaller batches for HTTP mode
+        batch_size = 500  # Reduced for HTTP server compatibility
         start_time = time.perf_counter()
 
         for i in range(0, len(ids), batch_size):
@@ -120,10 +127,7 @@ class ChromaAdapter(VectorDBAdapter):
         filter: Optional[Dict[str, Any]] = None
     ) -> QueryResult:
         """Search for similar vectors."""
-        if collection_name not in self.collections:
-            raise ValueError(f"Collection {collection_name} does not exist")
-
-        collection = self.collections[collection_name]
+        collection = self._get_collection(collection_name)
 
         # Convert filter to ChromaDB format
         where_filter = None
@@ -177,10 +181,7 @@ class ChromaAdapter(VectorDBAdapter):
 
     def get_index_stats(self, collection_name: str) -> IndexStats:
         """Get statistics about the collection."""
-        if collection_name not in self.collections:
-            raise ValueError(f"Collection {collection_name} does not exist")
-
-        collection = self.collections[collection_name]
+        collection = self._get_collection(collection_name)
         count = collection.count()
 
         # ChromaDB doesn't expose detailed stats

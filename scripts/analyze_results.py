@@ -7,6 +7,12 @@ Production-oriented analysis including:
 - Temporal drift degradation curves (NOVEL)
 - Cost-performance Pareto frontiers (NOVEL)
 - Operational complexity radar charts (NOVEL)
+- Multi-trial statistical analysis with confidence intervals
+- Statistical significance testing (t-test, Mann-Whitney U)
+- Effect size calculation (Cohen's d)
+
+Author: Debu Sinha <debusinha2009@gmail.com>
+Project: VectorDB-Bench - Production-Oriented Vector Database Benchmarking
 
 Usage:
     python scripts/analyze_results.py --results results/combined_*.json

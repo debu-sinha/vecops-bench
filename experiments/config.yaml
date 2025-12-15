@@ -7,6 +7,7 @@ experiment:
 
 databases:
   pinecone:
+    enabled: false
     enabled: true
     config:
       api_key: "${PINECONE_API_KEY}"
@@ -34,12 +35,14 @@ databases:
       port: 5432
       database: "vectordb_bench"
       user: "postgres"
+      password: "postgres"
 
   chroma:
     enabled: true
     config:
-      persist_directory: "./data/chroma"
-      deployment: "local"
+      host: "localhost"
+      port: 8000
+      deployment: "server"
 
   weaviate:
     enabled: true
@@ -49,7 +52,7 @@ databases:
       deployment: "docker"
 
 datasets:
-  - name: "msmarco-passage"
+  - name: "msmarco"
     source: "beir"
     num_docs: 100000  # Subset for benchmarking
     dimensions: 768

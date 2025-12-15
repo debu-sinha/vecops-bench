@@ -3,7 +3,7 @@
 import time
 from typing import Any, Dict, List, Optional
 import weaviate
-from weaviate.classes.config import Configure, Property, DataType
+from weaviate.classes.config import Configure, Property, DataType, VectorDistances
 from weaviate.classes.query import MetadataQuery
 
 from .base import VectorDBAdapter, QueryResult, IndexStats
@@ -74,16 +74,16 @@ class WeaviateAdapter(VectorDBAdapter):
         if not self._is_connected:
             raise RuntimeError("Not connected to Weaviate")
 
-        # Map metric names to Weaviate format
+        # Map metric names to Weaviate VectorDistances enum
         metric_map = {
-            "cosine": "cosine",
-            "l2": "l2-squared",
-            "euclidean": "l2-squared",
-            "ip": "dot",
-            "inner_product": "dot",
-            "dot": "dot"
+            "cosine": VectorDistances.COSINE,
+            "l2": VectorDistances.L2_SQUARED,
+            "euclidean": VectorDistances.L2_SQUARED,
+            "ip": VectorDistances.DOT,
+            "inner_product": VectorDistances.DOT,
+            "dot": VectorDistances.DOT
         }
-        weaviate_metric = metric_map.get(metric.lower(), "cosine")
+        weaviate_metric = metric_map.get(metric.lower(), VectorDistances.COSINE)
 
         # Delete if exists
         try:

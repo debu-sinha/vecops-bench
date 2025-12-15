@@ -130,6 +130,15 @@ class QdrantAdapter(VectorDBAdapter):
         if not self._is_connected:
             raise RuntimeError("Not connected to Qdrant")
 
+        # Validate vectors
+        if len(vectors) == 0:
+            raise ValueError("No vectors to insert")
+
+        # Check first vector dimension
+        expected_dim = len(vectors[0]) if vectors and len(vectors[0]) > 0 else 0
+        if expected_dim == 0:
+            raise ValueError(f"First vector has dimension 0, vectors may be empty")
+
         batch_size = 1000
         start_time = time.perf_counter()
 
@@ -141,7 +150,7 @@ class QdrantAdapter(VectorDBAdapter):
             points = [
                 PointStruct(
                     id=idx,  # Qdrant prefers integer IDs
-                    vector=vec,
+                    vector=list(vec) if hasattr(vec, '__iter__') else vec,  # Ensure it's a list
                     payload={**meta, "_original_id": doc_id}
                 )
                 for idx, (doc_id, vec, meta) in enumerate(
@@ -179,9 +188,10 @@ class QdrantAdapter(VectorDBAdapter):
 
         start_time = time.perf_counter()
 
-        results = self.client.search(
+        # Use query_points API (new in Qdrant client 1.16+)
+        response = self.client.query_points(
             collection_name=collection_name,
-            query_vector=query_vector,
+            query=query_vector,
             limit=top_k,
             query_filter=qdrant_filter,
             search_params=search_params,
@@ -190,7 +200,8 @@ class QdrantAdapter(VectorDBAdapter):
 
         latency_ms = (time.perf_counter() - start_time) * 1000
 
-        # Extract results
+        # Extract results from QueryResponse
+        results = response.points
         ids = [hit.payload.get("_original_id", str(hit.id)) for hit in results]
         scores = [hit.score for hit in results]
         metadatas = [
