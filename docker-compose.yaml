@@ -146,14 +146,21 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    shm_size: 8gb  # CRITICAL: Prevents shared memory exhaustion during parallel index build
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: vectordb_bench
+    command: >
+      postgres
+      -c maintenance_work_mem=8GB
+      -c max_parallel_maintenance_workers=14
+      -c shared_buffers=16GB
+      -c effective_cache_size=64GB
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 32G
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
