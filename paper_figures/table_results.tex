@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+\centering
+\caption{Benchmark Results Summary}
+\label{tab:results}
+\begin{tabular}{lccccc}
+\toprule
+Database & Recall@10 & Latency p50 & Latency p99 & QPS & Cold Start \\
+\midrule
+Milvus & 0.425 $\pm$ 0.182 & 4.81 ms & 6.34 ms & 118.5 & 20.2 ms \\
+Qdrant & 0.429 $\pm$ 0.171 & 5.20 ms & 6.55 ms & 338.7 & 70.0 ms \\
+pgvector & 0.435 $\pm$ 0.174 & 9.89 ms & 13.31 ms & 401.2 & 22.1 ms \\
+Weaviate & 0.410 $\pm$ 0.180 & 4.32 ms & 31.61 ms & 457.2 & 108.5 ms \\
+Chroma & 0.537 $\pm$ 0.000 & 4.37 ms & 4.96 ms & 324.3 & 65.3 ms \\
+\bottomrule
+\end{tabular}
+\end{table}

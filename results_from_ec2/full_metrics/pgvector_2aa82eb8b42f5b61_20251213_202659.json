@@ -1,0 +1,105 @@
+{
+  "database": "pgvector",
+  "dataset": "2aa82eb8b42f5b61",
+  "num_documents": 100000,
+  "num_queries": 21,
+  "embedding_dim": 768,
+  "timestamp": "2025-12-13T20:03:40.170266",
+  "operational_complexity": {
+    "database": "pgvector",
+    "deployment_score": 34.0,
+    "configuration_score": 60,
+    "monitoring_score": 25,
+    "maintenance_score": 8,
+    "documentation_score": 0,
+    "overall_score": 27.5,
+    "best_for": [
+      "Teams wanting zero ops burden",
+      "Growing workloads requiring scale"
+    ],
+    "challenges": [
+      "Requires external services: postgresql"
+    ],
+    "recommended_team_size": "small"
+  },
+  "index_build": {
+    "total_build_time_seconds": 729.9216476630008,
+    "insert_time_seconds": 726.3500343759988,
+    "num_vectors": 100000,
+    "vectors_per_second": 137.67466822784576,
+    "memory_delta_mb": 2630.5546875,
+    "index_size_bytes": 49152
+  },
+  "standard": {
+    "recall": {
+      "@1": 0.0,
+      "@10": 0.0,
+      "@100": 0.0
+    },
+    "precision": {
+      "@1": 0.0,
+      "@10": 0.0,
+      "@100": 0.0
+    },
+    "ndcg": {
+      "@1": 0.0,
+      "@10": 0.0,
+      "@100": 0.0
+    },
+    "latency": {
+      "p50": 0.9395030010637129,
+      "p95": 1.1721370010491228,
+      "p99": 3.3247850002226205,
+      "mean": 1.10029957145993,
+      "std": 0.6243649900290306,
+      "min": 0.8538029996998375,
+      "max": 3.8629470000159927
+    },
+    "qps": 908.8433967788902
+  },
+  "cold_start": {
+    "mean_ms": 14.799569000024348,
+    "std_ms": 2.7234708886290226,
+    "min_ms": 11.335215998769854,
+    "max_ms": 18.248169000798953,
+    "trials": 5
+  },
+  "filtered_search": {
+    "no_filter": {
+      "p50": 0.8313949983858038,
+      "p95": 1.0690090002754005,
+      "p99": 1.0719346002588281,
+      "mean": 0.8786118570632035,
+      "std": 0.10146862513221205,
+      "min": 0.7568769997305935,
+      "max": 1.072666000254685
+    },
+    "with_filter": {
+      "p50": 0.849989999551326,
+      "p95": 1.0724280000431463,
+      "p99": 1.8076047999784357,
+      "mean": 0.9488111427344847,
+      "std": 0.2520352047334626,
+      "min": 0.7920269999885932,
+      "max": 1.9913989999622572
+    },
+    "filter_overhead_percent": 7.989794936973094
+  },
+  "qps": {
+    "qps": 533.9502641239048,
+    "latency": {
+      "p50": 0.9847640012594638,
+      "p95": 1.917117701486859,
+      "p99": 2.051950659988506,
+      "mean": 1.1617551828538035,
+      "std": 0.3738012051213958,
+      "min": 0.6825160016887821,
+      "max": 3.713009999046335
+    },
+    "duration_seconds": 30,
+    "total_queries": 16019
+  },
+  "status": "error",
+  "error": "DriftBenchmark.__init__() got an unexpected keyword argument 'dataset'",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/ubuntu/vectordb-bench/scripts/run_benchmark.py\", line 526, in run_full_benchmark\n    results[\"temporal_drift\"] = run_drift_benchmark(\n                                ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/vectordb-bench/scripts/run_benchmark.py\", line 300, in run_drift_benchmark\n    drift_bench = DriftBenchmark(\n                  ^^^^^^^^^^^^^^^\nTypeError: DriftBenchmark.__init__() got an unexpected keyword argument 'dataset'\n"
+}

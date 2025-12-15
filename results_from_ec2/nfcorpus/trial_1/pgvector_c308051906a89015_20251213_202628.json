@@ -1,0 +1,103 @@
+{
+  "database": "pgvector",
+  "dataset": "c308051906a89015",
+  "num_documents": 3633,
+  "num_queries": 323,
+  "embedding_dim": 768,
+  "timestamp": "2025-12-13T20:25:32.673119",
+  "operational_complexity": {
+    "database": "pgvector",
+    "deployment_score": 34.0,
+    "configuration_score": 60,
+    "monitoring_score": 25,
+    "maintenance_score": 8,
+    "documentation_score": 0,
+    "overall_score": 27.5,
+    "best_for": [
+      "Teams wanting zero ops burden",
+      "Growing workloads requiring scale"
+    ],
+    "challenges": [
+      "Requires external services: postgresql"
+    ],
+    "recommended_team_size": "small"
+  },
+  "index_build": {
+    "total_build_time_seconds": 14.53081665999889,
+    "insert_time_seconds": 14.386835362000056,
+    "num_vectors": 3633,
+    "vectors_per_second": 252.52252553023868,
+    "memory_delta_mb": 136.25,
+    "index_size_bytes": 30638080
+  },
+  "standard": {
+    "recall": {
+      "@1": 0.05027896756084159,
+      "@10": 0.159181893217909,
+      "@100": 0.3334025299250397
+    },
+    "precision": {
+      "@1": 0.4117647058823529,
+      "@10": 0.24922600619195046,
+      "@100": 0.08291021671826626
+    },
+    "ndcg": {
+      "@1": 0.4117647058823529,
+      "@10": 0.53465749301835,
+      "@100": 0.5371126969108806
+    },
+    "latency": {
+      "p50": 24.919825000324636,
+      "p95": 25.7391451008516,
+      "p99": 29.518812619462523,
+      "mean": 25.072536458177378,
+      "std": 0.9762774061637703,
+      "min": 24.318857000253047,
+      "max": 35.20452199882129
+    },
+    "qps": 39.88427743112728
+  },
+  "cold_start": {
+    "mean_ms": 39.8554684001283,
+    "std_ms": 0.8305340823185425,
+    "min_ms": 38.67945000092732,
+    "max_ms": 40.96638400005759,
+    "trials": 5
+  },
+  "filtered_search": {
+    "no_filter": {
+      "p50": 24.28809100001672,
+      "p95": 24.7171021502254,
+      "p99": 25.412268360032666,
+      "mean": 24.436002039929008,
+      "std": 1.1615572035941102,
+      "min": 23.783463999279775,
+      "max": 35.754339000050095
+    },
+    "with_filter": {
+      "p50": 1.372839999930875,
+      "p95": 1.46167524953853,
+      "p99": 1.5360121993762772,
+      "mean": 1.379494849988987,
+      "std": 0.11146658528144145,
+      "min": 1.2563889995362842,
+      "max": 2.3169439991761465
+    },
+    "filter_overhead_percent": -94.35466224084095
+  },
+  "qps": {
+    "qps": 404.4654906697611,
+    "latency": {
+      "p50": 1.7455645001973608,
+      "p95": 2.1071308993668936,
+      "p99": 2.6801806995354127,
+      "mean": 1.9345286289777532,
+      "std": 2.0072236622930713,
+      "min": 1.172930000393535,
+      "max": 25.09353099958389
+    },
+    "duration_seconds": 30,
+    "total_queries": 12134
+  },
+  "status": "success"
+}

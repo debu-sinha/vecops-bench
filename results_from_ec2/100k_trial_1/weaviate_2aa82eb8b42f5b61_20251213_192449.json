@@ -1,0 +1,95 @@
+{
+  "database": "weaviate",
+  "dataset": "2aa82eb8b42f5b61",
+  "num_documents": 100000,
+  "num_queries": 21,
+  "embedding_dim": 768,
+  "timestamp": "2025-12-13T19:23:40.235926",
+  "operational_complexity": {
+    "database": "weaviate",
+    "deployment_score": 18.0,
+    "configuration_score": 65,
+    "monitoring_score": 25,
+    "maintenance_score": 8,
+    "documentation_score": 0,
+    "overall_score": 24.5,
+    "best_for": [
+      "Teams wanting zero ops burden",
+      "Quick POCs and demos",
+      "Simple deployments without dependencies",
+      "Growing workloads requiring scale"
+    ],
+    "challenges": [],
+    "recommended_team_size": "solo"
+  },
+  "index_build": {
+    "total_build_time_seconds": 37.7258100880008,
+    "insert_time_seconds": 34.35532947700085,
+    "num_vectors": 100000,
+    "vectors_per_second": 2910.756541192391,
+    "memory_delta_mb": 2357.06640625,
+    "index_size_bytes": 0
+  },
+  "standard": {
+    "recall": {
+      "@1": 0.19241961741961738,
+      "@10": 0.5372914122914123,
+      "@100": 0.7407407407407407
+    },
+    "precision": {
+      "@1": 0.5714285714285714,
+      "@10": 0.2523809523809523,
+      "@100": 0.03333333333333333
+    },
+    "ndcg": {
+      "@1": 0.5714285714285714,
+      "@10": 0.5855121073984981,
+      "@100": 0.5831446602029077
+    },
+    "latency": {
+      "p50": 4.4901889996253885,
+      "p95": 5.192126000110875,
+      "p99": 37.97560439961674,
+      "mean": 6.385324523805702,
+      "std": 8.90242807798467,
+      "min": 3.8294869991659652,
+      "max": 46.17147399949317
+    },
+    "qps": 156.60911145107977
+  },
+  "cold_start": {
+    "mean_ms": 109.15579820029961,
+    "std_ms": 2.9500721217859223,
+    "min_ms": 106.4325409988669,
+    "max_ms": 114.84301200107438,
+    "trials": 5
+  },
+  "filtered_search": {
+    "no_filter": {
+      "p50": 2.104466999298893,
+      "p95": 2.3790459999872837,
+      "p99": 2.451125199877424,
+      "mean": 2.110796761848005,
+      "std": 0.18116707839399634,
+      "min": 1.8100470006174874,
+      "max": 2.4691449998499593
+    },
+    "with_filter": {},
+    "filter_overhead_percent": null
+  },
+  "qps": {
+    "qps": 428.68088519076207,
+    "latency": {
+      "p50": 2.1286230003170203,
+      "p95": 2.472198999385,
+      "p99": 2.605507800399209,
+      "mean": 2.136360549243511,
+      "std": 0.3861203920943123,
+      "min": 1.4510439996229252,
+      "max": 33.64395300013712
+    },
+    "duration_seconds": 30,
+    "total_queries": 12861
+  },
+  "status": "success"
+}

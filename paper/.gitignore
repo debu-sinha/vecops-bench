@@ -1,0 +1,11 @@
+# LaTeX generated files
+*.aux
+*.log
+*.out
+*.toc
+*.lot
+*.lof
+*.bbl
+*.blg
+*.synctex.gz
+comment.cut

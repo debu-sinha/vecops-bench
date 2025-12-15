@@ -1,0 +1,98 @@
+{
+  "database": "milvus",
+  "dataset": "2aa82eb8b42f5b61",
+  "num_documents": 100000,
+  "num_queries": 21,
+  "embedding_dim": 768,
+  "timestamp": "2025-12-13T20:00:30.125721",
+  "operational_complexity": {
+    "database": "milvus",
+    "deployment_score": 65.0,
+    "configuration_score": 85,
+    "monitoring_score": 25,
+    "maintenance_score": 8,
+    "documentation_score": 0,
+    "overall_score": 40.25,
+    "best_for": [
+      "Teams wanting zero ops burden",
+      "Growing workloads requiring scale"
+    ],
+    "challenges": [
+      "Requires external services: etcd, minio/s3",
+      "High memory requirement: 8GB minimum"
+    ],
+    "recommended_team_size": "small"
+  },
+  "index_build": {
+    "total_build_time_seconds": 18.491935531999843,
+    "insert_time_seconds": 14.065397941998526,
+    "num_vectors": 100000,
+    "vectors_per_second": 7109.645984590692,
+    "memory_delta_mb": 2359.17578125,
+    "index_size_bytes": 0
+  },
+  "standard": {
+    "recall": {
+      "@1": 0.19241961741961744,
+      "@10": 0.5452279202279202,
+      "@100": 0.6805046805046805
+    },
+    "precision": {
+      "@1": 0.5714285714285714,
+      "@10": 0.2571428571428571,
+      "@100": 0.03142857142857143
+    },
+    "ndcg": {
+      "@1": 0.5714285714285714,
+      "@10": 0.5845979595783216,
+      "@100": 0.5779321025435644
+    },
+    "latency": {
+      "p50": 12.026529999275226,
+      "p95": 18.636962999153184,
+      "p99": 21.699794200685577,
+      "mean": 12.397637809824248,
+      "std": 3.334165431708613,
+      "min": 8.39090000044962,
+      "max": 22.46550200106867
+    },
+    "qps": 80.66052705682134
+  },
+  "cold_start": {
+    "mean_ms": 42.69735199995921,
+    "std_ms": 9.129076377758969,
+    "min_ms": 31.546365999020054,
+    "max_ms": 52.308840000478085,
+    "trials": 5
+  },
+  "filtered_search": {
+    "no_filter": {
+      "p50": 9.568298000885989,
+      "p95": 11.710885999491438,
+      "p99": 19.01998999965145,
+      "mean": 9.809282428510155,
+      "std": 2.940994333340199,
+      "min": 5.943467000179226,
+      "max": 20.847265999691444
+    },
+    "with_filter": {},
+    "filter_overhead_percent": null
+  },
+  "qps": {
+    "qps": 55.06512431272554,
+    "latency": {
+      "p50": 8.723725999516319,
+      "p95": 16.80640634967856,
+      "p99": 41.270567949650285,
+      "mean": 10.10612943946068,
+      "std": 9.596962802424935,
+      "min": 3.8375539988919627,
+      "max": 198.46262999999453
+    },
+    "duration_seconds": 30,
+    "total_queries": 1652
+  },
+  "status": "error",
+  "error": "DriftBenchmark.__init__() got an unexpected keyword argument 'dataset'",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/ubuntu/vectordb-bench/scripts/run_benchmark.py\", line 526, in run_full_benchmark\n    results[\"temporal_drift\"] = run_drift_benchmark(\n                                ^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/vectordb-bench/scripts/run_benchmark.py\", line 300, in run_drift_benchmark\n    drift_bench = DriftBenchmark(\n                  ^^^^^^^^^^^^^^^\nTypeError: DriftBenchmark.__init__() got an unexpected keyword argument 'dataset'\n"
+}
