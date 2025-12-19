@@ -1,0 +1,17 @@
+{
+  "database": "elasticsearch",
+  "scale": 1000000,
+  "dimensions": 768,
+  "timestamp": "2025-12-14T13:28:31.612620",
+  "phase_config": {
+    "scale": 1000000,
+    "num_queries": 1000,
+    "trials": 3,
+    "qps_duration": 30,
+    "cold_start_trials": 5,
+    "crash_recovery_trials": 3
+  },
+  "status": "error",
+  "error": "Unknown database: elasticsearch. Available: ['chroma', 'qdrant', 'pgvector', 'milvus', 'pinecone', 'weaviate']",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 714, in run_full_benchmark\n    adapter = get_adapter(db_name, db_config)\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\__init__.py\", line 36, in get_adapter\n    raise ValueError(f\"Unknown database: {db_name}. Available: {list(adapters.keys())}\")\nValueError: Unknown database: elasticsearch. Available: ['chroma', 'qdrant', 'pgvector', 'milvus', 'pinecone', 'weaviate']\n"
+}

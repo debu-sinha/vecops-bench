@@ -1,0 +1,8 @@
+{
+  "database": "weaviate",
+  "collection": "bench_v2_weaviate",
+  "total_vectors": 9990000,
+  "total_time_s": 4931.212144613266,
+  "ingestion_rate": 2025.871065172653,
+  "timestamp": "2025-12-16T23:57:16.157209"
+}

@@ -1,0 +1,351 @@
+{"database": "qdrant", "ttq_seconds": 2025-12-17 16:17:14 -   Waiting for qdrant index to settle (TTQ)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.54ms
+    p99: 5.41ms
+  Running QPS test (30s)...
+    QPS (single): 231
+  Running concurrent QPS test (4 threads, 30s)...
+    QPS (4 threads): 448
+
+Results saved to /tmp/qdrant_latency_20251217_162440.json
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.48ms
+    p99: 5.13ms
+  Running QPS test (30s)...
+    QPS (single): 230
+  Running concurrent QPS test (4 threads, 30s)...
+    QPS (4 threads): 382
+
+Results saved to /tmp/qdrant_latency_20251217_162551.json
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 6.16ms
+    p99: 8.71ms
+  Running QPS test (30s)...
+    QPS (single): 149
+  Running concurrent QPS test (4 threads, 30s)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.51ms
+    p99: 4.86ms
+  Running QPS test (30s)...
+    QPS (single): 217
+  Running concurrent QPS test (4 threads, 30s)...
+    QPS (4 threads): 327
+
+Results saved to /tmp/qdrant_latency_20251217_162814.json
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 6.14ms
+    p99: 8.18ms
+  Running QPS test (30s)...
+    QPS (single): 112
+  Running concurrent QPS test (4 threads, 30s)...
+    QPS (4 threads): 407
+
+Results saved to /tmp/qdrant_latency_20251217_162928.json
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.44ms
+    p99: 4.68ms
+  Running QPS test (30s)...
+    QPS (single): 233
+  Running concurrent QPS test (4 threads, 30s)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.35ms
+    p99: 4.78ms
+  Running QPS test (30s)...
+    QPS (single): 231
+  Running concurrent QPS test (4 threads, 30s)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.56ms
+    p99: 4.81ms
+  Running QPS test (30s)...
+    QPS (single): 195
+  Running concurrent QPS test (4 threads, 30s)...
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 5.80ms
+    p99: 11.77ms
+  Running QPS test (30s)...
+    QPS (single): 158
+  Running concurrent QPS test (4 threads, 30s)...
+    QPS (4 threads): 428
+
+Results saved to /tmp/qdrant_latency_20251217_163412.json
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.41ms
+    p99: 4.74ms
+  Running QPS test (30s)...
+    QPS (single): 238
+  Running concurrent QPS test (4 threads, 30s)...
+    QPS (4 threads): 463
+
+Results saved to /tmp/qdrant_latency_20251217_163522.json
+
+============================================================
+LATENCY BENCHMARK: qdrant
+  Queries: 10
+============================================================
+
+  Collection: 9,990,000 vectors
+  Running latency test (10 queries)...
+    p50: 4.27ms
+    p99: 4.43ms
+  Running QPS test (30s)...
+    QPS (single): 240
+  Running concurrent QPS test (4 threads, 30s)...
+    QPS (4 threads): 465
+
+Results saved to /tmp/qdrant_latency_20251217_163633.json
+2025-12-17 16:36:38 -   TTQ for qdrant: 1164s
+1164}

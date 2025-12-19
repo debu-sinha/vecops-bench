@@ -473,6 +473,284 @@ def generate_latex_table(aggregated: Dict, output_path: str):
     print(f"Saved: {output_path}")
 
 
+def compute_cohens_d(group1: List[float], group2: List[float]) -> float:
+    """
+    Compute Cohen's d effect size between two groups.
+
+    Cohen's d = (mean1 - mean2) / pooled_std
+
+    Interpretation:
+    - |d| < 0.2: negligible
+    - 0.2 <= |d| < 0.5: small
+    - 0.5 <= |d| < 0.8: medium
+    - |d| >= 0.8: large
+    """
+    n1, n2 = len(group1), len(group2)
+    if n1 < 2 or n2 < 2:
+        return 0.0
+
+    mean1, mean2 = np.mean(group1), np.mean(group2)
+    var1, var2 = np.var(group1, ddof=1), np.var(group2, ddof=1)
+
+    # Pooled standard deviation
+    pooled_std = np.sqrt(((n1 - 1) * var1 + (n2 - 1) * var2) / (n1 + n2 - 2))
+
+    if pooled_std == 0:
+        return 0.0
+
+    return (mean1 - mean2) / pooled_std
+
+
+def interpret_cohens_d(d: float) -> str:
+    """Interpret Cohen's d magnitude."""
+    abs_d = abs(d)
+    if abs_d < 0.2:
+        return "negligible"
+    elif abs_d < 0.5:
+        return "small"
+    elif abs_d < 0.8:
+        return "medium"
+    else:
+        return "large"
+
+
+def load_churn_results(results_dir: str) -> Dict[str, Dict]:
+    """Load churn test results for temporal drift analysis."""
+    churn_results = {}
+    results_path = Path(results_dir)
+
+    for json_file in results_path.glob("**/churn*/*.json"):
+        try:
+            with open(json_file, "r") as f:
+                data = json.load(f)
+                db = data.get("database", "unknown")
+                if "cycles" in data:
+                    churn_results[db] = data
+        except Exception as e:
+            print(f"Warning: Could not load {json_file}: {e}")
+
+    return churn_results
+
+
+def plot_temporal_drift(churn_results: Dict, output_path: str):
+    """
+    THE STAR FIGURE: Recall degradation under data churn.
+
+    Shows how each database's recall degrades over churn cycles.
+    This is the key novel contribution of the paper.
+    """
+    if not HAS_PLOTTING:
+        return
+
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, 5))
+
+    for db, data in churn_results.items():
+        if "cycles" not in data:
+            continue
+
+        cycles = [c["cycle"] for c in data["cycles"]]
+        recalls = [c["recall_at_10"] for c in data["cycles"]]
+
+        ax.plot(
+            cycles,
+            recalls,
+            marker="o",
+            markersize=8,
+            linewidth=2,
+            color=COLORS.get(db, "#666666"),
+            label=DB_NAMES.get(db, db),
+        )
+
+        # Add degradation annotation at the end
+        if len(recalls) > 1:
+            degradation = ((recalls[0] - recalls[-1]) / recalls[0]) * 100
+            ax.annotate(
+                f"{degradation:+.1f}%",
+                xy=(cycles[-1], recalls[-1]),
+                xytext=(5, 0),
+                textcoords="offset points",
+                fontsize=8,
+                color=COLORS.get(db, "#666666"),
+            )
+
+    ax.set_xlabel("Churn Cycle (100K vectors deleted + inserted per cycle)")
+    ax.set_ylabel("Recall@10")
+    ax.set_title("Temporal Drift: Recall Degradation Under Data Churn")
+    ax.legend(loc="lower left")
+    ax.grid(True, alpha=0.3)
+
+    # Add reference line at initial recall
+    ax.axhline(y=0.95, color="gray", linestyle="--", alpha=0.5, label="Target (0.95)")
+
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()
+    print(f"Saved: {output_path}")
+
+
+def plot_compaction_recovery(churn_results: Dict, output_path: str):
+    """
+    Figure: Compaction recovery effectiveness.
+
+    Shows pre-churn, post-churn, and post-compaction recall for each DB.
+    """
+    if not HAS_PLOTTING:
+        return
+
+    fig, ax = plt.subplots(figsize=(FIGURE_WIDTH, 5))
+
+    databases = []
+    initial_recalls = []
+    post_churn_recalls = []
+    post_compaction_recalls = []
+    colors_list = []
+
+    for db in ["pgvector", "qdrant", "milvus", "weaviate", "chroma"]:
+        if db not in churn_results:
+            continue
+        data = churn_results[db]
+        if "summary" not in data:
+            continue
+
+        databases.append(DB_NAMES.get(db, db))
+        initial_recalls.append(data["summary"].get("initial_recall", 0))
+        post_churn_recalls.append(data["summary"].get("final_recall", 0))
+        post_compaction_recalls.append(
+            data["summary"].get("post_compaction_recall", data["summary"].get("final_recall", 0))
+        )
+        colors_list.append(COLORS.get(db, "#666666"))
+
+    if not databases:
+        print("No compaction data found")
+        return
+
+    x = np.arange(len(databases))
+    width = 0.25
+
+    bars1 = ax.bar(x - width, initial_recalls, width, label="Initial", alpha=0.9)
+    bars2 = ax.bar(x, post_churn_recalls, width, label="Post-Churn", alpha=0.7)
+    bars3 = ax.bar(x + width, post_compaction_recalls, width, label="Post-Compaction", alpha=0.5)
+
+    # Color bars by database
+    for i, color in enumerate(colors_list):
+        bars1[i].set_color(color)
+        bars2[i].set_color(color)
+        bars3[i].set_color(color)
+
+    ax.set_xlabel("Database")
+    ax.set_ylabel("Recall@10")
+    ax.set_title("Index Maintenance: Recall Recovery After Compaction")
+    ax.set_xticks(x)
+    ax.set_xticklabels(databases, rotation=45, ha="right")
+    ax.legend(loc="lower right")
+    ax.set_ylim(0.7, 1.0)
+    ax.grid(True, alpha=0.3, axis="y")
+
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()
+    print(f"Saved: {output_path}")
+
+
+def generate_effect_size_table(churn_results: Dict, output_path: str):
+    """
+    Generate LaTeX table of Cohen's d effect sizes for churn degradation.
+
+    Compares each database's degradation to others.
+    """
+    databases = list(churn_results.keys())
+
+    # Extract degradation percentages for each database
+    degradations = {}
+    for db, data in churn_results.items():
+        if "cycles" in data:
+            recalls = [c["recall_at_10"] for c in data["cycles"]]
+            degradations[db] = recalls  # Full recall trajectory
+
+    if len(degradations) < 2:
+        print("Not enough databases for effect size comparison")
+        return
+
+    # Compute pairwise Cohen's d
+    latex = []
+    latex.append("\\begin{table}[htbp]")
+    latex.append("\\centering")
+    latex.append("\\caption{Cohen's d Effect Sizes: Pairwise Comparison of Recall Degradation}")
+    latex.append("\\label{tab:effect_sizes}")
+    latex.append("\\begin{tabular}{l" + "c" * len(databases) + "}")
+    latex.append("\\toprule")
+    latex.append(" & " + " & ".join([DB_NAMES.get(db, db) for db in databases]) + " \\\\")
+    latex.append("\\midrule")
+
+    for db1 in databases:
+        row = [DB_NAMES.get(db1, db1)]
+        for db2 in databases:
+            if db1 == db2:
+                row.append("--")
+            else:
+                d = compute_cohens_d(degradations[db1], degradations[db2])
+                interp = interpret_cohens_d(d)
+                row.append(f"{d:.2f} ({interp[0]})")
+        latex.append(" & ".join(row) + " \\\\")
+
+    latex.append("\\bottomrule")
+    latex.append("\\multicolumn{" + str(len(databases) + 1) + "}{l}{\\footnotesize n=negligible, s=small, m=medium, l=large}")
+    latex.append("\\end{tabular}")
+    latex.append("\\end{table}")
+
+    with open(output_path, "w") as f:
+        f.write("\n".join(latex))
+
+    print(f"Saved: {output_path}")
+
+
+def generate_degradation_summary(churn_results: Dict, output_path: str):
+    """
+    Generate summary statistics for temporal drift with 95% CI.
+    """
+    summary = {
+        "databases": {},
+        "pairwise_effect_sizes": {},
+    }
+
+    for db, data in churn_results.items():
+        if "summary" not in data:
+            continue
+
+        s = data["summary"]
+        recalls = s.get("recall_trend", [])
+
+        if len(recalls) > 1:
+            # Compute 95% CI for degradation
+            degradation_pct = s.get("recall_degradation_pct", 0)
+
+            summary["databases"][db] = {
+                "initial_recall": s.get("initial_recall"),
+                "final_recall": s.get("final_recall"),
+                "degradation_pct": degradation_pct,
+                "post_compaction_recall": s.get("post_compaction_recall"),
+                "recovery_pct": s.get("recovery_pct"),
+                "recall_trajectory": recalls,
+            }
+
+    # Compute pairwise effect sizes
+    dbs = list(summary["databases"].keys())
+    for i, db1 in enumerate(dbs):
+        for db2 in dbs[i + 1:]:
+            traj1 = summary["databases"][db1]["recall_trajectory"]
+            traj2 = summary["databases"][db2]["recall_trajectory"]
+            d = compute_cohens_d(traj1, traj2)
+            summary["pairwise_effect_sizes"][f"{db1}_vs_{db2}"] = {
+                "cohens_d": d,
+                "interpretation": interpret_cohens_d(d),
+            }
+
+    with open(output_path, "w") as f:
+        json.dump(summary, f, indent=2)
+
+    print(f"Saved: {output_path}")
+
+
 def main():
     import argparse
 
@@ -503,7 +781,7 @@ def main():
     print(f"Aggregated results for: {list(aggregated.keys())}")
 
     # Generate figures
-    print("\nGenerating figures...")
+    print("\nGenerating baseline figures...")
 
     plot_recall_vs_latency(aggregated, str(output_dir / "fig1_recall_latency.pdf"))
     plot_qps_comparison(aggregated, str(output_dir / "fig2_qps_comparison.pdf"))
@@ -514,6 +792,26 @@ def main():
 
     # Generate LaTeX table
     generate_latex_table(aggregated, str(output_dir / "table_results.tex"))
+
+    # Load and generate temporal drift figures (THE STAR FEATURE)
+    print("\nGenerating temporal drift figures...")
+    churn_results = load_churn_results(args.input)
+    if churn_results:
+        print(f"Loaded churn results for: {list(churn_results.keys())}")
+
+        # The key figure - recall degradation over churn cycles
+        plot_temporal_drift(churn_results, str(output_dir / "fig7_temporal_drift.pdf"))
+
+        # Compaction recovery figure
+        plot_compaction_recovery(churn_results, str(output_dir / "fig8_compaction_recovery.pdf"))
+
+        # Generate effect size table (Cohen's d)
+        generate_effect_size_table(churn_results, str(output_dir / "table_effect_sizes.tex"))
+
+        # Generate degradation summary JSON
+        generate_degradation_summary(churn_results, str(output_dir / "degradation_summary.json"))
+    else:
+        print("No churn results found, skipping temporal drift figures")
 
     print("\nDone! Figures saved to:", output_dir)
 

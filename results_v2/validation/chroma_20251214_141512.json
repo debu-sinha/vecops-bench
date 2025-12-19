@@ -1,0 +1,120 @@
+{
+  "database": "chroma",
+  "scale": 1000000,
+  "dimensions": 768,
+  "timestamp": "2025-12-14T13:28:54.924747",
+  "phase_config": {
+    "scale": 1000000,
+    "num_queries": 1000,
+    "trials": 3,
+    "qps_duration": 30,
+    "cold_start_trials": 5,
+    "crash_recovery_trials": 3
+  },
+  "ingestion": {
+    "database": "chroma",
+    "total_vectors": 1000000,
+    "total_seconds": 841.2972866978962,
+    "vectors_per_second": 1188.6404673014151,
+    "batches": 200,
+    "batch_size": 5000,
+    "time_to_100m_estimate_hours": 23.36936907494156,
+    "memory_delta_mb": 3363.1015625,
+    "index_size_bytes": 0
+  },
+  "queries": {
+    "num_queries": 1000,
+    "latency": {
+      "mean": 165.29141520196572,
+      "std": 392.7969870956292,
+      "p50": 86.85195003636181,
+      "p95": 459.8806449212132,
+      "p99": 983.8157408987165,
+      "min": 26.55609999783337,
+      "max": 10202.976200031117
+    },
+    "recall": {
+      "@1": {
+        "mean": 0.33,
+        "std": 0.47021271782034996,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "@10": {
+        "mean": 0.10450000000000001,
+        "std": 0.09181367000615975,
+        "min": 0.0,
+        "max": 0.4
+      },
+      "@100": {
+        "mean": 0.058360000000000016,
+        "std": 0.025026194277196843,
+        "min": 0.01,
+        "max": 0.17
+      }
+    },
+    "qps_estimate": 6.049920976102258
+  },
+  "qps": {
+    "qps": 20.60608563149933,
+    "total_queries": 619,
+    "duration_seconds": 30,
+    "warmup_included": true,
+    "latency": {
+      "mean": 48.38542084462387,
+      "std": 46.999004388545,
+      "p50": 35.975500009953976,
+      "p95": 117.15630993712696,
+      "p99": 270.0038020499058
+    }
+  },
+  "concurrent_qps": {
+    "concurrent_qps": 440.50889857448743,
+    "num_threads": 4,
+    "total_queries": 13414,
+    "duration_seconds": 30.451144218444824,
+    "latency": {
+      "mean": 8.911163419506199,
+      "std": 36.38492623101782,
+      "p50": 4.5415000058710575,
+      "p95": 25.01656003296372,
+      "p99": 56.55384000856427
+    }
+  },
+  "filtered_search": {
+    "no_filter": {
+      "mean_ms": 3.3216089964844286,
+      "std_ms": 0.5684014035165331
+    },
+    "filtered": {
+      "1%": {
+        "mean_ms": 2557.6770469918847,
+        "overhead_percent": 76901.14762751771,
+        "success_rate": 1.0
+      },
+      "10%": {
+        "mean_ms": 2473.2962820050307,
+        "overhead_percent": 74360.78947349772,
+        "success_rate": 1.0
+      },
+      "50%": {
+        "mean_ms": 8455.458604993764,
+        "overhead_percent": 254459.11920828043,
+        "success_rate": 1.0
+      }
+    }
+  },
+  "resilience": {
+    "cold_start": {
+      "error": "[WinError 2] The system cannot find the file specified"
+    },
+    "crash_recovery": {
+      "error": "[WinError 2] The system cannot find the file specified"
+    }
+  },
+  "operational_complexity": {
+    "error": "Docker CLI not found in PATH",
+    "note": "Runtime measurement failed - container may not be running"
+  },
+  "status": "success"
+}

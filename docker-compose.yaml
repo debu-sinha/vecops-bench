@@ -7,14 +7,16 @@ version: '3.8'
 # IMPORTANT: All images use PINNED versions for reproducibility.
 # Do NOT use :latest tags for benchmarking.
 #
-# Tested on: AWS EC2 c5.2xlarge, Ubuntu 22.04 LTS
-# Last updated: 2024-01
+# Tested on: AWS EC2 i4i.4xlarge (128GB RAM, NVMe SSD), Ubuntu 22.04 LTS
+# Last updated: 2025-12
+#
+# MEMORY: Set to 64GB to handle 10M vectors with HNSW indexes
+# Each DB needs ~50GB (30GB raw + 20GB index overhead)
+# Run DBs SEQUENTIALLY to avoid OOM!
 #
 # Usage:
-#   docker-compose up -d           # Start all databases
-#   docker-compose ps              # Check status
-#   docker-compose logs -f qdrant  # View logs
-#   docker-compose down -v         # Stop and remove volumes
+#   docker-compose up -d postgres     # Start single DB
+#   docker-compose stop postgres      # Stop before next DB
 #
 # =============================================================================
 
@@ -34,7 +36,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 64G
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6333/"]
@@ -100,7 +102,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 6G
+          memory: 64G
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091/healthz"]
@@ -128,7 +130,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 64G
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
@@ -160,7 +162,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 32G
+          memory: 64G
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -184,7 +186,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 2G
+          memory: 64G
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/heartbeat"]

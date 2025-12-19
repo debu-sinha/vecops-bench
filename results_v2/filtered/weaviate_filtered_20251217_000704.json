@@ -1,0 +1,31 @@
+{
+  "database": "weaviate",
+  "collection": "bench_v2_weaviate",
+  "num_queries": 1000,
+  "corpus_size": 9990000,
+  "timestamp": "2025-12-17T00:06:16.689775",
+  "unfiltered": {
+    "latency_mean_ms": 45.169673135329504,
+    "latency_p50_ms": 41.63826951116789,
+    "latency_p95_ms": 80.26900338736596,
+    "latency_p99_ms": 111.35040755820228
+  },
+  "filtered": {
+    "50.0%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.5
+    },
+    "10.0%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.1
+    },
+    "1.0%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.01
+    },
+    "0.1%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.001
+    }
+  }
+}

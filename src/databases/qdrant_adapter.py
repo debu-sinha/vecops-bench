@@ -138,15 +138,15 @@ class QdrantAdapter(VectorDBAdapter):
             batch_vectors = vectors[i : i + batch_size]
             batch_metadata = metadata[i : i + batch_size] if metadata else [{}] * len(batch_ids)
 
+            # Use UUID5 from doc_id for globally unique point IDs
+            import uuid
             points = [
                 PointStruct(
-                    id=idx,  # Qdrant prefers integer IDs
-                    vector=list(vec) if hasattr(vec, "__iter__") else vec,  # Ensure it's a list
+                    id=str(uuid.uuid5(uuid.NAMESPACE_DNS, doc_id)),  # Unique ID from doc_id
+                    vector=list(vec) if hasattr(vec, "__iter__") else vec,
                     payload={**meta, "_original_id": doc_id},
                 )
-                for idx, (doc_id, vec, meta) in enumerate(
-                    zip(batch_ids, batch_vectors, batch_metadata), start=i
-                )
+                for doc_id, vec, meta in zip(batch_ids, batch_vectors, batch_metadata)
             ]
 
             self.client.upsert(collection_name=collection_name, points=points, wait=True)

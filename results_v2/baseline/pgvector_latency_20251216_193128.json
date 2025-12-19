@@ -1,0 +1,26 @@
+{
+  "database": "pgvector",
+  "collection": "bench_v2_pgvector",
+  "num_vectors": 9990000,
+  "timestamp": "2025-12-16T19:30:17.810137",
+  "status": "success",
+  "latency": {
+    "num_queries": 1000,
+    "latency_mean_ms": 9.371476284548407,
+    "latency_p50_ms": 9.895955998217687,
+    "latency_p95_ms": 15.226336798514236,
+    "latency_p99_ms": 17.09581977629568,
+    "latency_std_ms": 4.100755511840277
+  },
+  "qps_single": {
+    "duration_s": 30.001214027404785,
+    "total_queries": 12586,
+    "qps": 419.51635652154755
+  },
+  "qps_concurrent": {
+    "threads": 4,
+    "duration_s": 30.002360343933105,
+    "total_queries": 49324,
+    "qps": 1644.0039861721746
+  }
+}

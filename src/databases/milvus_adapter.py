@@ -32,6 +32,7 @@ class MilvusAdapter(VectorDBAdapter):
         super().__init__("milvus", config)
         self.alias = config.get("alias", "default")
         self.collections: Dict[str, Collection] = {}
+        self.metadata_fields: Dict[str, List[str]] = {}  # Track metadata fields per collection
 
     def connect(self) -> None:
         """Connect to Milvus."""
@@ -79,8 +80,10 @@ class MilvusAdapter(VectorDBAdapter):
         ]
 
         # Add metadata fields if specified
+        metadata_field_names = []
         if kwargs.get("metadata_fields"):
             for field_name, field_type in kwargs["metadata_fields"].items():
+                metadata_field_names.append(field_name)
                 if field_type == "string":
                     fields.append(
                         FieldSchema(name=field_name, dtype=DataType.VARCHAR, max_length=1024)
@@ -89,6 +92,9 @@ class MilvusAdapter(VectorDBAdapter):
                     fields.append(FieldSchema(name=field_name, dtype=DataType.INT64))
                 elif field_type == "float":
                     fields.append(FieldSchema(name=field_name, dtype=DataType.FLOAT))
+
+        # Store metadata field names for this collection
+        self.metadata_fields[collection_name] = metadata_field_names
 
         schema = CollectionSchema(
             fields=fields, description=f"VectorDB-Bench collection: {collection_name}"
@@ -118,6 +124,13 @@ class MilvusAdapter(VectorDBAdapter):
         # Also create index on doc_id for filtering
         collection.create_index(field_name="doc_id", index_params={"index_type": "Trie"})
 
+        # Create index on metadata fields for efficient filtering
+        for field_name in metadata_field_names:
+            try:
+                collection.create_index(field_name=field_name, index_params={"index_type": "Trie"})
+            except Exception:
+                pass  # Some field types may not support Trie index
+
         self.collections[collection_name] = collection
 
     def insert_vectors(
@@ -139,6 +152,9 @@ class MilvusAdapter(VectorDBAdapter):
         batch_size = 1000
         start_time = time.perf_counter()
 
+        # Get metadata field names for this collection
+        meta_fields = self.metadata_fields.get(collection_name, [])
+
         for i in range(0, len(ids), batch_size):
             batch_ids = ids[i : i + batch_size]
             batch_vectors = vectors[i : i + batch_size]
@@ -147,6 +163,13 @@ class MilvusAdapter(VectorDBAdapter):
                 batch_ids,  # doc_id
                 batch_vectors,  # embedding
             ]
+
+            # Add metadata fields in the same order as schema
+            if metadata and meta_fields:
+                batch_metadata = metadata[i : i + batch_size]
+                for field_name in meta_fields:
+                    field_values = [m.get(field_name, "") for m in batch_metadata]
+                    data.append(field_values)
 
             collection.insert(data)
 
@@ -258,6 +281,10 @@ class MilvusAdapter(VectorDBAdapter):
 
     def _build_filter_expression(self, filter: Dict[str, Any]) -> str:
         """Build Milvus filter expression from dict."""
+        # If "expr" key is provided, use it directly (already a Milvus expression)
+        if "expr" in filter:
+            return filter["expr"]
+
         expressions = []
 
         for key, value in filter.items():

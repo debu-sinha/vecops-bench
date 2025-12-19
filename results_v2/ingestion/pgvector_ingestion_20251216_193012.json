@@ -1,0 +1,8 @@
+{
+  "database": "pgvector",
+  "collection": "bench_v2_pgvector",
+  "total_vectors": 9990000,
+  "total_time_s": 55793.126507759094,
+  "ingestion_rate": 179.05431412972888,
+  "timestamp": "2025-12-16T19:30:11.485909"
+}

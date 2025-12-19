@@ -1,0 +1,26 @@
+{
+  "database": "chroma",
+  "collection": "bench_v2_chroma",
+  "num_vectors": 9990000,
+  "timestamp": "2025-12-19T00:39:34.531829",
+  "status": "success",
+  "latency": {
+    "num_queries": 1000,
+    "latency_mean_ms": 4.236638795991894,
+    "latency_p50_ms": 4.121819009014871,
+    "latency_p95_ms": 6.401462201756658,
+    "latency_p99_ms": 7.151135106541915,
+    "latency_std_ms": 1.2661791007216376
+  },
+  "qps_single": {
+    "duration_s": 30.00179147720337,
+    "total_queries": 10465,
+    "qps": 348.8125036783803
+  },
+  "qps_concurrent": {
+    "threads": 4,
+    "duration_s": 30.009501457214355,
+    "total_queries": 15876,
+    "qps": 529.032447361213
+  }
+}

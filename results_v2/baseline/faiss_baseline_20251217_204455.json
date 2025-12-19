@@ -1,0 +1,24 @@
+{
+  "database": "faiss",
+  "num_vectors": 9990000,
+  "dimension": 768,
+  "num_queries": 1000,
+  "timestamp": "2025-12-17T20:18:38.599506",
+  "build_time_s": 1542.3787686824799,
+  "latency": {
+    "latency_mean_ms": 1.1748176760447677,
+    "latency_p50_ms": 1.1584004969336092,
+    "latency_p95_ms": 1.5042959450511262,
+    "latency_p99_ms": 1.9934282844769766,
+    "latency_std_ms": 0.2143593199839822
+  },
+  "qps_single": {
+    "duration_s": 30.000009059906006,
+    "total_queries": 25758,
+    "qps": 858.5997407055684
+  },
+  "recall": {
+    "recall_at_10_mean": 0.8941,
+    "recall_at_10_std": 0.17033845719625385
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "database": "milvus",
+  "dataset": "SIFT1M",
+  "collection": "sift1m_milvus",
+  "timestamp": "2025-12-19T07:24:59.303457",
+  "recall": {
+    "num_queries": 10000,
+    "ef_search": 100,
+    "recall_at_1": {
+      "mean": 0.9838,
+      "std": 0.12624404936471262,
+      "min": 0.0,
+      "max": 1.0
+    },
+    "recall_at_10": {
+      "mean": 0.98745,
+      "std": 0.03610398177486798,
+      "min": 0.6,
+      "max": 1.0
+    },
+    "recall_at_100": {
+      "mean": 0.971448,
+      "std": 0.03248881801481857,
+      "min": 0.72,
+      "max": 1.0
+    }
+  }
+}

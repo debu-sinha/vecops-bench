@@ -1,0 +1,17 @@
+{
+  "database": "elasticsearch",
+  "scale": 1000000,
+  "dimensions": 768,
+  "timestamp": "2025-12-14T14:27:57.711733",
+  "phase_config": {
+    "scale": 1000000,
+    "num_queries": 1000,
+    "trials": 3,
+    "qps_duration": 30,
+    "cold_start_trials": 5,
+    "crash_recovery_trials": 3
+  },
+  "status": "error",
+  "error": "Cannot connect to Elasticsearch at localhost:9200",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 715, in run_full_benchmark\n    adapter.connect()\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\elasticsearch_adapter.py\", line 70, in connect\n    raise ConnectionError(f\"Cannot connect to Elasticsearch at {self.host}:{self.port}\")\nConnectionError: Cannot connect to Elasticsearch at localhost:9200\n"
+}

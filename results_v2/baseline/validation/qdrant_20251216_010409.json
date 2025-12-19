@@ -1,0 +1,17 @@
+{
+  "database": "qdrant",
+  "scale": 9990000,
+  "dimensions": 768,
+  "timestamp": "2025-12-16T01:04:09.525752",
+  "phase_config": {
+    "scale": 9990000,
+    "num_queries": 1000,
+    "trials": 3,
+    "qps_duration": 30,
+    "cold_start_trials": 5,
+    "crash_recovery_trials": 3
+  },
+  "status": "error",
+  "error": "Dataset 'Cohere/wikipedia-22-12-en-embeddings' doesn't exist on the Hub or cannot be accessed. If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page at https://huggingface.co/datasets/Cohere/wikipedia-22-12-en-embeddings to ask for access.",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/ubuntu/vecops-bench/scripts/run_benchmark_v2.py\", line 720, in run_full_benchmark\n    ingestion_result, sample_vectors, sample_ids = run_ingestion_benchmark(\n                                                   ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/vecops-bench/scripts/run_benchmark_v2.py\", line 257, in run_ingestion_benchmark\n    for ids, vectors in generator:\n  File \"/home/ubuntu/vecops-bench/src/resilience/ingestion_speed.py\", line 252, in stream_cohere_wikipedia\n    dataset = load_dataset(\n              ^^^^^^^^^^^^^\n  File \"/home/ubuntu/vecops-bench/venv/lib/python3.12/site-packages/datasets/load.py\", line 2592, in load_dataset\n    builder_instance = load_dataset_builder(\n                       ^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/vecops-bench/venv/lib/python3.12/site-packages/datasets/load.py\", line 2264, in load_dataset_builder\n    dataset_module = dataset_module_factory(\n                     ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/vecops-bench/venv/lib/python3.12/site-packages/datasets/load.py\", line 1909, in dataset_module_factory\n    raise e1 from None\n  File \"/home/ubuntu/vecops-bench/venv/lib/python3.12/site-packages/datasets/load.py\", line 1855, in dataset_module_factory\n    raise DatasetNotFoundError(\ndatasets.exceptions.DatasetNotFoundError: Dataset 'Cohere/wikipedia-22-12-en-embeddings' doesn't exist on the Hub or cannot be accessed. If the dataset is private or gated, make sure to log in with `huggingface-cli login` or visit the dataset page at https://huggingface.co/datasets/Cohere/wikipedia-22-12-en-embeddings to ask for access.\n"
+}

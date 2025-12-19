@@ -1,0 +1,26 @@
+{
+  "database": "qdrant",
+  "collection": "bench_v2_qdrant",
+  "num_vectors": 9990000,
+  "timestamp": "2025-12-18T00:02:28.730206",
+  "status": "success",
+  "latency": {
+    "num_queries": 1000,
+    "latency_mean_ms": 11.926238733401988,
+    "latency_p50_ms": 13.125633995514363,
+    "latency_p95_ms": 16.287140047643334,
+    "latency_p99_ms": 16.988482622837182,
+    "latency_std_ms": 3.792151544667077
+  },
+  "qps_single": {
+    "duration_s": 30.000688791275024,
+    "total_queries": 7395,
+    "qps": 246.4943405616293
+  },
+  "qps_concurrent": {
+    "threads": 4,
+    "duration_s": 30.010165214538574,
+    "total_queries": 14515,
+    "qps": 483.66944654367103
+  }
+}

@@ -1,34 +1,61 @@
 # VecOps-Bench
 
-**Beyond QPS: Benchmarking Vector Databases for Production Resilience**
+**Measuring the Hidden Cost of Data Churn in Production Vector Databases**
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17924957.svg)](https://doi.org/10.5281/zenodo.17924957)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![GitHub stars](https://img.shields.io/github/stars/debu-sinha/vecops-bench?style=social)](https://github.com/debu-sinha/vecops-bench)
-[![GitHub forks](https://img.shields.io/github/forks/debu-sinha/vecops-bench?style=social)](https://github.com/debu-sinha/vecops-bench/fork)
-[![Downloads](https://img.shields.io/github/downloads/debu-sinha/vecops-bench/total)](https://github.com/debu-sinha/vecops-bench/releases)
-[![CI](https://github.com/debu-sinha/vecops-bench/actions/workflows/ci.yml/badge.svg)](https://github.com/debu-sinha/vecops-bench/actions)
 
-> A production-oriented benchmark suite for vector databases focusing on **Day-2 Operations**: cold start latency, crash recovery, operational complexity, and filtered search overhead.
+> **Key Finding**: All tested HNSW indexes degrade 3.4%–9.7% after just 10% data churn, with 38× speed differences in churn operations.
 
 ---
 
-## What Makes VecOps-Bench Different?
+## The Production Gap
 
-| Metric | ANN-Benchmarks | VectorDBBench (Zilliz) | **VecOps-Bench** |
-|--------|----------------|------------------------|------------------|
-| Recall/QPS | Yes | Yes | Yes |
-| Cold Start (TTFQ) | No | No | **Yes** |
-| Crash Recovery | No | No | **Yes** |
-| Config Friction | No | No | **Yes** |
-| Filtered Search | Limited | Limited | **Yes (1%, 10%, 50%)** |
+Current benchmarks (ANN-Benchmarks, VectorDBBench) evaluate **Day 1 performance**:
+- Fresh index, static corpus, synthetic queries
+
+Real production systems face **Day 2 challenges**:
+- Continuous updates (documents added/removed)
+- Index degradation from data churn
+- Compaction overhead and timing
+- Memory pressure during operations
+
+**VecOps-Bench measures what happens when production reality meets HNSW theory.**
+
+---
+
+## Key Results (December 2025)
+
+### Temporal Drift Under 10% Data Churn
+
+| Database | Initial Recall@10 | After 10 Cycles | Degradation |
+|----------|-------------------|-----------------|-------------|
+| pgvector | 83.13% | 75.06% | **9.71%** |
+| Milvus | 97.84% | 89.28% | **8.75%** |
+| Chroma | 88.99% | 81.61% | **8.29%** |
+| Weaviate | 81.80% | 79.06% | **3.35%** |
+
+### Churn Operation Speed
+
+| Database | Avg Delete (100K) | Avg Insert (100K) | Full Cycle |
+|----------|-------------------|-------------------|------------|
+| Milvus | 22.9s | 14.3s | **37s** |
+| Weaviate | 94.9s | 94.9s | 190s |
+| pgvector | 87.5s | 1307.8s | **1395s** |
+| Chroma | 671.5s | 781.8s | 1453s |
+
+**38× speed difference** between fastest (Milvus) and slowest (pgvector) churn operations.
 
 ---
 
 ## Quick Start
 
-### Reproduce Published Results (Zenodo Paper)
+### Prerequisites
+- Docker & Docker Compose
+- Python 3.9+
+- 64GB+ RAM recommended for 10M scale
+
+### Run Benchmark
 
 ```bash
 # Clone repository
@@ -46,92 +73,45 @@ pip install -r requirements.txt
 # Start databases
 docker-compose up -d
 
-# Wait for healthy status
-docker-compose ps
+# Run baseline benchmark
+python scripts/run_benchmark_v2.py --scale 1000000
 
-# Run quick validation (100K vectors, ~30 min)
-python scripts/run_benchmark_v2.py --phase quick
-
-# Results saved to results_v2/quick/
-```
-
-### Run Production Scale (10M vectors)
-
-```bash
-# Run 10M scale benchmark (~5-6 hours)
-python scripts/run_benchmark_v2.py --scale 10000000
-
-# Or run specific database only
-python scripts/run_benchmark_v2.py --scale 10000000 --database qdrant pgvector
+# Run temporal drift analysis (THE KEY EXPERIMENT)
+python scripts/run_churn_test_v2.py --database milvus --cycles 10
 ```
 
 ---
 
-## Databases Evaluated
+## Methodology
 
-| Database | Version | Index | Notes |
-|----------|---------|-------|-------|
-| [FAISS](https://github.com/facebookresearch/faiss) | CPU | HNSW | **Speed-of-light baseline** (see below) |
-| [Elasticsearch](https://www.elastic.co/) | 8.11.0 | HNSW (Lucene) | Full-text + vector |
-| [Milvus](https://milvus.io/) | 2.3.4 | HNSW | Distributed |
-| [Qdrant](https://qdrant.tech/) | 1.16.0 | HNSW | Rust-based |
-| [pgvector](https://github.com/pgvector/pgvector) | **0.8.0+** | HNSW | PostgreSQL extension |
-| [Chroma](https://www.trychroma.com/) | 0.6.3 | HNSW | Lightweight |
-| [Weaviate](https://weaviate.io/) | 1.27.0 | HNSW | GraphQL-native |
+### Dataset
+- **Primary**: Cohere Wikipedia embeddings (9.99M × 768 dimensions)
+- **Validation**: SIFT1M (1M × 128 dimensions)
 
-### FAISS Baseline Note
+### HNSW Parameters (Standardized)
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| M | 16 | Industry standard |
+| ef_construction | 128 | Balanced build/quality |
+| ef_search | 100 | Balanced recall/latency |
 
-FAISS is included as a **theoretical "speed of light" baseline** for latency/QPS, not as a production database competitor:
-
-- **Purpose**: Establishes minimum achievable latency for HNSW search (no network, no persistence overhead)
-- **Limitations**: No crash recovery, no filtering, no persistence - not a production database
-- **Configuration**: Uses `ef_construction=64` (vs 200 for DBs) for practical build times at 10M+ scale
-- **Comparison**: FAISS latency results show the overhead each database adds; recall comparisons exclude FAISS due to different index parameters
+### Churn Protocol
+1. Load 9.99M vectors + 10K held-out queries
+2. Each cycle: DELETE 100K oldest + INSERT 100K new
+3. Measure Recall@10 after each cycle
+4. 10 cycles = 10% total corpus turnover
 
 ---
 
-## Metrics
+## Databases Tested
 
-### Standard Metrics
-- **Recall@10**: Accuracy vs brute-force ground truth
-- **QPS**: Queries per second (single & concurrent)
-- **Latency**: p50, p95, p99 response times
-
-### Novel Production Metrics
-
-| Metric | Description | Why It Matters |
-|--------|-------------|----------------|
-| **Cold Start (TTFQ)** | Container restart to first query | Serverless/auto-scaling |
-| **Crash Recovery** | Kill -9 to data integrity | SRE reliability |
-| **Config Friction** | YAML lines + Image size | Operational complexity |
-| **Filtered Search** | Overhead at 1%, 10%, 50% selectivity | Real-world queries |
-
----
-
-## Infrastructure
-
-### Recommended Hardware
-- **Instance**: AWS i4i.4xlarge (16 vCPU, 128GB RAM, NVMe)
-- **Cost**: ~$1.37/hour
-- **OS**: Ubuntu 22.04+
-
-### Docker Configuration
-
-All databases run in Docker with:
-- Pinned versions for reproducibility
-- Health checks for readiness detection
-- Memory limits for fair comparison
-
-```bash
-# Start all databases
-docker-compose up -d
-
-# Check health
-docker-compose ps
-
-# View logs
-docker-compose logs -f qdrant
-```
+| Database | Version | Status |
+|----------|---------|--------|
+| [Milvus](https://milvus.io/) | 2.3.4 | ✅ Complete |
+| [pgvector](https://github.com/pgvector/pgvector) | 0.8.0 | ✅ Complete |
+| [Weaviate](https://weaviate.io/) | 1.27.0 | ✅ Complete |
+| [Chroma](https://www.trychroma.com/) | 0.6.3 | ✅ Complete |
+| [Qdrant](https://qdrant.tech/) | 1.7.4 | ⚠️ Delete timeouts |
 
 ---
 
@@ -141,78 +121,61 @@ docker-compose logs -f qdrant
 vecops-bench/
 ├── src/
 │   ├── databases/          # Database adapters
-│   ├── metrics/            # Metric computation
-│   ├── resilience/         # Cold start, crash recovery
-│   ├── operational/        # Runtime complexity prober
-│   └── stats/              # Statistical analysis
+│   ├── metrics/            # Recall computation
+│   └── resilience/         # Cold start, crash recovery
 ├── scripts/
-│   ├── run_benchmark_v2.py # Main benchmark runner
-│   └── generate_figures.py # Visualization
-├── docker-compose.yaml     # Database containers
-├── results_v2/             # Benchmark results (JSON)
-└── paper/                  # LaTeX paper source
+│   ├── run_benchmark_v2.py # Baseline benchmark
+│   ├── run_churn_test_v2.py # Temporal drift analysis
+│   ├── run_sift1m_*.py     # SIFT1M validation
+│   └── generate_vldb_figures.py # Publication figures
+├── paper/
+│   ├── vecops_bench_vldb2026.tex # VLDB 2026 submission
+│   ├── figures/            # Publication figures
+│   └── CLAIMS_VALIDATION.md # Data verification
+├── results_v2/             # Experimental results (JSON)
+└── docker-compose.yaml     # Database containers
 ```
 
 ---
 
-## Results Format
+## Reproducing Results
 
-Each database produces a JSON file with:
+### Generate Publication Figures
 
-```json
-{
-  "database": "qdrant",
-  "scale": 10000000,
-  "recall_at_10": 0.892,
-  "qps": 1250.5,
-  "p50_ms": 0.78,
-  "p95_ms": 1.23,
-  "cold_start_ms": 2450.3,
-  "crash_recovery_ms": 3200.1,
-  "filtered_search": {
-    "selectivity_1pct": 1.15,
-    "selectivity_10pct": 1.08,
-    "selectivity_50pct": 0.95
-  }
-}
+```bash
+python scripts/generate_vldb_figures.py
+# Output: paper/figures/fig1_recall_degradation.pdf (etc.)
 ```
+
+### Validate Paper Claims
+
+All claims in the paper are validated against experimental JSON files:
+- See `paper/CLAIMS_VALIDATION.md` for full verification
+
+---
+
+## Hardware
+
+**AWS EC2 Instance**:
+- Type: Memory-optimized (i4i.4xlarge or similar)
+- RAM: 128GB
+- vCPUs: 16
+- Storage: NVMe SSD
 
 ---
 
 ## Citation
 
-If you use VecOps-Bench in your research, please cite:
-
 ```bibtex
-@software{sinha2025vecopsbench,
-  author       = {Sinha, Debu},
-  title        = {{VecOps-Bench: A Day-2 Operations Benchmark
-                   for Vector Database Systems}},
-  month        = dec,
-  year         = 2025,
-  publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.17924957},
-  url          = {https://doi.org/10.5281/zenodo.17924957}
+@article{sinha2025vecops,
+  title={{VecOps-Bench}: Measuring the Hidden Cost of Data Churn
+         in Production Vector Databases},
+  author={Sinha, Debu},
+  journal={Proceedings of the VLDB Endowment},
+  year={2026},
+  note={Under review}
 }
 ```
-
----
-
-## Related Work
-
-- [ANN-Benchmarks](https://ann-benchmarks.com/) - Algorithm-level recall/QPS
-- [VectorDBBench](https://github.com/zilliztech/VectorDBBench) - Zilliz benchmark
-- [BEIR](https://github.com/beir-cellar/beir) - Information retrieval benchmark
-
----
-
-## Contributing
-
-We welcome contributions:
-- Additional database adapters
-- New operational metrics
-- Larger scale experiments
-- Cloud cost modeling
 
 ---
 
@@ -222,4 +185,8 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Questions?** Open an [issue](https://github.com/debu-sinha/vecops-bench/issues)
+## Contact
+
+- **Author**: Debu Sinha
+- **GitHub**: [@debu-sinha](https://github.com/debu-sinha)
+- **Issues**: [GitHub Issues](https://github.com/debu-sinha/vecops-bench/issues)

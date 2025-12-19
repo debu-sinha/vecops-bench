@@ -1,0 +1,110 @@
+{
+  "database": "weaviate",
+  "collection": "bench_v2_weaviate",
+  "timestamp": "2025-12-19T06:17:05.497996",
+  "methodology": "pre-computed GT, simplified churn",
+  "cycles": [
+    {
+      "cycle": 0,
+      "recall_at_10": 0.818,
+      "latency_p50_ms": 248.51636149105616,
+      "latency_p99_ms": 641.6035593650302,
+      "corpus_size": 9990000
+    },
+    {
+      "cycle": 1,
+      "recall_at_10": 0.818,
+      "latency_p50_ms": 15.15642399317585,
+      "latency_p99_ms": 32.987689218716696,
+      "corpus_size": 9990000,
+      "delete_time_s": 80.68122615996981,
+      "insert_time_s": 216.03107517503668
+    },
+    {
+      "cycle": 2,
+      "recall_at_10": 0.818,
+      "latency_p50_ms": 2.8604259714484215,
+      "latency_p99_ms": 4.517922548111528,
+      "corpus_size": 9990000,
+      "delete_time_s": 164.41461381700356,
+      "insert_time_s": 40.300663888978306
+    },
+    {
+      "cycle": 3,
+      "recall_at_10": 0.818,
+      "latency_p50_ms": 2.261057001305744,
+      "latency_p99_ms": 3.4360608243150637,
+      "corpus_size": 9990000,
+      "delete_time_s": 58.8921335680061,
+      "insert_time_s": 32.37349698500475
+    },
+    {
+      "cycle": 4,
+      "recall_at_10": 0.818,
+      "latency_p50_ms": 2.1538244909606874,
+      "latency_p99_ms": 3.286420207004994,
+      "corpus_size": 9990000,
+      "delete_time_s": 59.66079156898195,
+      "insert_time_s": 32.569422077038325
+    },
+    {
+      "cycle": 5,
+      "recall_at_10": 0.818,
+      "latency_p50_ms": 2.261778514366597,
+      "latency_p99_ms": 3.456478367443195,
+      "corpus_size": 9990000,
+      "delete_time_s": 62.30081331200199,
+      "insert_time_s": 32.49229637096869
+    },
+    {
+      "cycle": 6,
+      "recall_at_10": 0.8168,
+      "latency_p50_ms": 2.2029905230738223,
+      "latency_p99_ms": 3.4487210691440846,
+      "corpus_size": 9990000,
+      "delete_time_s": 61.35439575399505,
+      "insert_time_s": 32.05933336500311
+    },
+    {
+      "cycle": 7,
+      "recall_at_10": 0.8168,
+      "latency_p50_ms": 2.3275105049833655,
+      "latency_p99_ms": 3.862060122773982,
+      "corpus_size": 9990000,
+      "delete_time_s": 59.078659420018084,
+      "insert_time_s": 51.22307537897723
+    },
+    {
+      "cycle": 8,
+      "recall_at_10": 0.8091,
+      "latency_p50_ms": 3.1377500272355974,
+      "latency_p99_ms": 4.835632244357838,
+      "corpus_size": 9990000,
+      "delete_time_s": 110.33536571299192,
+      "insert_time_s": 51.70260822196724
+    },
+    {
+      "cycle": 9,
+      "recall_at_10": 0.8006,
+      "latency_p50_ms": 3.26681396109052,
+      "latency_p99_ms": 30.301354396506206,
+      "corpus_size": 9990000,
+      "delete_time_s": 168.14629439200507,
+      "insert_time_s": 54.20746116602095
+    },
+    {
+      "cycle": 10,
+      "recall_at_10": 0.7906,
+      "latency_p50_ms": 71.94310851627961,
+      "latency_p99_ms": 542.8804345097159,
+      "corpus_size": 9990000,
+      "delete_time_s": 164.0268087220029,
+      "insert_time_s": 510.0224754270166
+    }
+  ],
+  "summary": {
+    "initial_recall": 0.818,
+    "final_recall": 0.7906,
+    "recall_degradation_pct": 3.349633251833738
+  }
+}

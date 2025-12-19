@@ -1,0 +1,17 @@
+{
+  "database": "milvus",
+  "scale": 1000000,
+  "dimensions": 768,
+  "timestamp": "2025-12-14T14:28:30.652934",
+  "phase_config": {
+    "scale": 1000000,
+    "num_queries": 1000,
+    "trials": 3,
+    "qps_duration": 30,
+    "cold_start_trials": 5,
+    "crash_recovery_trials": 3
+  },
+  "status": "error",
+  "error": "<MilvusException: (code=2, message=Fail connecting to server on localhost:19530, illegal connection params or server unavailable)>",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 715, in run_full_benchmark\n    adapter.connect()\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\milvus_adapter.py\", line 37, in connect\n    connections.connect(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\orm\\connections.py\", line 422, in connect\n    connect_milvus(**kwargs, user=user, password=password, token=token, db_name=db_name)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\orm\\connections.py\", line 376, in connect_milvus\n    raise e from e\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\orm\\connections.py\", line 370, in connect_milvus\n    gh._wait_for_channel_ready(timeout=timeout)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\client\\grpc_handler.py\", line 223, in _wait_for_channel_ready\n    raise MilvusException(\npymilvus.exceptions.MilvusException: <MilvusException: (code=2, message=Fail connecting to server on localhost:19530, illegal connection params or server unavailable)>\n"
+}

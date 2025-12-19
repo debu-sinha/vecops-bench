@@ -1,0 +1,59 @@
+{
+  "database": "pgvector",
+  "collection": "bench_v2_pgvector",
+  "num_queries": 1000,
+  "corpus_size": 9990000,
+  "timestamp": "2025-12-18T13:00:54.977668",
+  "unfiltered": {
+    "latency_mean_ms": 7.668390637278208,
+    "latency_p50_ms": 7.677137502469122,
+    "latency_p95_ms": 10.46424414817011,
+    "latency_p99_ms": 11.694945485069184
+  },
+  "filtered": {
+    "50.0%": {
+      "selectivity": 0.5,
+      "num_categories": 5,
+      "latency_mean_ms": 5.670194372840342,
+      "latency_p50_ms": 5.529502501303796,
+      "latency_p95_ms": 7.964525698480428,
+      "latency_p99_ms": 9.004884652240435,
+      "success_rate": 0.988,
+      "empty_result_rate": 0.012,
+      "overhead_vs_unfiltered": -26.057570081577097
+    },
+    "10.0%": {
+      "selectivity": 0.1,
+      "num_categories": 1,
+      "latency_mean_ms": 4.895494303913438,
+      "latency_p50_ms": 4.774149005243089,
+      "latency_p95_ms": 6.775103855034103,
+      "latency_p99_ms": 7.910597917216363,
+      "success_rate": 0.988,
+      "empty_result_rate": 0.012,
+      "overhead_vs_unfiltered": -36.160081880609205
+    },
+    "1.0%": {
+      "selectivity": 0.01,
+      "num_categories": 1,
+      "latency_mean_ms": 4.932201864183298,
+      "latency_p50_ms": 4.784889497386757,
+      "latency_p95_ms": 6.952282800193643,
+      "latency_p99_ms": 8.033943014015676,
+      "success_rate": 0.988,
+      "empty_result_rate": 0.012,
+      "overhead_vs_unfiltered": -35.68139525643783
+    },
+    "0.1%": {
+      "selectivity": 0.001,
+      "num_categories": 1,
+      "latency_mean_ms": 4.884655474845204,
+      "latency_p50_ms": 4.744818004837725,
+      "latency_p95_ms": 6.807316544291097,
+      "latency_p99_ms": 7.885714938165618,
+      "success_rate": 0.988,
+      "empty_result_rate": 0.012,
+      "overhead_vs_unfiltered": -36.30142612845625
+    }
+  }
+}

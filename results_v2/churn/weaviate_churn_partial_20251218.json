@@ -1,0 +1,52 @@
+{
+  "database": "weaviate",
+  "collection": "bench_v2_weaviate",
+  "timestamp": "2025-12-18T21:51:29.103495",
+  "methodology": "pre-computed GT, simplified churn",
+  "note": "PARTIAL - crashed during cycle 7 delete operation",
+  "cycles": [
+    {
+      "cycle": 0,
+      "recall_at_10": 0.8779,
+      "corpus_size": 9990000
+    },
+    {
+      "cycle": 1,
+      "recall_at_10": 0.8715,
+      "corpus_size": 9990000
+    },
+    {
+      "cycle": 2,
+      "recall_at_10": 0.8607,
+      "corpus_size": 9990000
+    },
+    {
+      "cycle": 3,
+      "recall_at_10": 0.852,
+      "corpus_size": 9990000
+    },
+    {
+      "cycle": 4,
+      "recall_at_10": 0.8432,
+      "corpus_size": 9990000
+    },
+    {
+      "cycle": 5,
+      "recall_at_10": 0.8359,
+      "corpus_size": 9990000
+    },
+    {
+      "cycle": 6,
+      "recall_at_10": 0.829,
+      "corpus_size": 9990000
+    }
+  ],
+  "summary": {
+    "initial_recall": 0.8779,
+    "final_recall": 0.829,
+    "recall_degradation_pct": 5.570110490944305,
+    "cycles_completed": 6,
+    "cycles_expected": 10,
+    "crash_reason": "Server disconnected during delete operation cycle 7"
+  }
+}

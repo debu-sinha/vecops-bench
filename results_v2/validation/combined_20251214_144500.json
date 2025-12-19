@@ -1,0 +1,327 @@
+[
+  {
+    "database": "faiss",
+    "scale": 1000000,
+    "dimensions": 768,
+    "timestamp": "2025-12-14T13:37:38.537233",
+    "phase_config": {
+      "scale": 1000000,
+      "num_queries": 1000,
+      "trials": 3,
+      "qps_duration": 30,
+      "cold_start_trials": 5,
+      "crash_recovery_trials": 3
+    },
+    "ingestion": {
+      "database": "faiss",
+      "total_vectors": 1000000,
+      "total_seconds": 2620.6359824989922,
+      "vectors_per_second": 381.58676240353594,
+      "batches": 20,
+      "batch_size": 50000,
+      "time_to_100m_estimate_hours": 72.79544395830534,
+      "memory_delta_mb": 3621.65625,
+      "index_size_bytes": 6144000000
+    },
+    "queries": {
+      "num_queries": 1000,
+      "latency": {
+        "mean": 2.847841099370271,
+        "std": 0.7577908794188771,
+        "p50": 2.6599998818710446,
+        "p95": 4.1173900361172855,
+        "p99": 5.205841034185139,
+        "min": 2.0224000327289104,
+        "max": 12.505199993029237
+      },
+      "recall": {
+        "@1": {
+          "mean": 0.496,
+          "std": 0.4999839997439918,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "@10": {
+          "mean": 0.14350000000000002,
+          "std": 0.10216530722314694,
+          "min": 0.0,
+          "max": 0.6
+        },
+        "@100": {
+          "mean": 0.09950000000000002,
+          "std": 0.029297610824092806,
+          "min": 0.02,
+          "max": 0.2
+        }
+      },
+      "qps_estimate": 351.1431871044789
+    },
+    "qps": {
+      "qps": 409.7323335851867,
+      "total_queries": 12292,
+      "duration_seconds": 30,
+      "warmup_included": true,
+      "latency": {
+        "mean": 2.313402472720795,
+        "std": 0.3089399083618838,
+        "p50": 2.2539999336004257,
+        "p95": 2.7360450592823327,
+        "p99": 3.248396927956492
+      }
+    },
+    "concurrent_qps": {
+      "concurrent_qps": 931.2510305167971,
+      "num_threads": 4,
+      "total_queries": 28025,
+      "duration_seconds": 30.093926429748535,
+      "latency": {
+        "mean": 4.132420371330603,
+        "std": 0.49300174792614054,
+        "p50": 4.06099995598197,
+        "p95": 4.894140036776662,
+        "p99": 5.51752789877355
+      }
+    },
+    "filtered_search": {
+      "no_filter": {
+        "mean_ms": 2.4088860163465142,
+        "std_ms": 0.36244249925195937
+      },
+      "filtered": {
+        "1%": {
+          "mean_ms": 2.38727098563686,
+          "overhead_percent": -0.8973040053774306,
+          "success_rate": 1.0
+        },
+        "10%": {
+          "mean_ms": 2.405100984033197,
+          "overhead_percent": -0.1571279125550995,
+          "success_rate": 1.0
+        },
+        "50%": {
+          "mean_ms": 2.391967996954918,
+          "overhead_percent": -0.7023171406530637,
+          "success_rate": 1.0
+        }
+      }
+    },
+    "resilience": {
+      "cold_start": {
+        "error": "[WinError 2] The system cannot find the file specified"
+      },
+      "crash_recovery": {
+        "error": "[WinError 2] The system cannot find the file specified"
+      }
+    },
+    "operational_complexity": {
+      "error": "Docker CLI not found in PATH",
+      "note": "Runtime measurement failed - container may not be running"
+    },
+    "status": "success"
+  },
+  {
+    "database": "elasticsearch",
+    "scale": 1000000,
+    "dimensions": 768,
+    "timestamp": "2025-12-14T14:27:57.711733",
+    "phase_config": {
+      "scale": 1000000,
+      "num_queries": 1000,
+      "trials": 3,
+      "qps_duration": 30,
+      "cold_start_trials": 5,
+      "crash_recovery_trials": 3
+    },
+    "status": "error",
+    "error": "Cannot connect to Elasticsearch at localhost:9200",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 715, in run_full_benchmark\n    adapter.connect()\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\elasticsearch_adapter.py\", line 70, in connect\n    raise ConnectionError(f\"Cannot connect to Elasticsearch at {self.host}:{self.port}\")\nConnectionError: Cannot connect to Elasticsearch at localhost:9200\n"
+  },
+  {
+    "database": "milvus",
+    "scale": 1000000,
+    "dimensions": 768,
+    "timestamp": "2025-12-14T14:28:30.652934",
+    "phase_config": {
+      "scale": 1000000,
+      "num_queries": 1000,
+      "trials": 3,
+      "qps_duration": 30,
+      "cold_start_trials": 5,
+      "crash_recovery_trials": 3
+    },
+    "status": "error",
+    "error": "<MilvusException: (code=2, message=Fail connecting to server on localhost:19530, illegal connection params or server unavailable)>",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 715, in run_full_benchmark\n    adapter.connect()\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\milvus_adapter.py\", line 37, in connect\n    connections.connect(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\orm\\connections.py\", line 422, in connect\n    connect_milvus(**kwargs, user=user, password=password, token=token, db_name=db_name)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\orm\\connections.py\", line 376, in connect_milvus\n    raise e from e\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\orm\\connections.py\", line 370, in connect_milvus\n    gh._wait_for_channel_ready(timeout=timeout)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\pymilvus\\client\\grpc_handler.py\", line 223, in _wait_for_channel_ready\n    raise MilvusException(\npymilvus.exceptions.MilvusException: <MilvusException: (code=2, message=Fail connecting to server on localhost:19530, illegal connection params or server unavailable)>\n"
+  },
+  {
+    "database": "qdrant",
+    "scale": 1000000,
+    "dimensions": 768,
+    "timestamp": "2025-12-14T14:28:40.949491",
+    "phase_config": {
+      "scale": 1000000,
+      "num_queries": 1000,
+      "trials": 3,
+      "qps_duration": 30,
+      "cold_start_trials": 5,
+      "crash_recovery_trials": 3
+    },
+    "status": "error",
+    "error": "<_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed to connect to all addresses; last error: UNAVAILABLE: ipv4:127.0.0.1:6334: ConnectEx: Connection refused (No connection could be made because the target machine actively refused it.\r\n -- 10061)\"\n\tdebug_error_string = \"UNKNOWN:Error received from peer  {grpc_message:\"failed to connect to all addresses; last error: UNAVAILABLE: ipv4:127.0.0.1:6334: ConnectEx: Connection refused (No connection could be made because the target machine actively refused it.\\r\\n -- 10061)\", grpc_status:14}\"\n>",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 719, in run_full_benchmark\n    ingestion_result, sample_vectors, sample_ids = run_ingestion_benchmark(\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 234, in run_ingestion_benchmark\n    adapter.create_index(collection_name, dimensions, metric=\"cosine\")\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\qdrant_adapter.py\", line 112, in create_index\n    self.client.create_collection(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\qdrant_client\\qdrant_client.py\", line 1694, in create_collection\n    return self._client.create_collection(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\qdrant_client\\qdrant_remote.py\", line 1993, in create_collection\n    return self.grpc_collections.Create(create_collection, timeout=self._timeout).result\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\grpc\\_interceptor.py\", line 276, in __call__\n    response, ignored_call = self._with_call(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\grpc\\_interceptor.py\", line 331, in _with_call\n    return call.result(), call\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\grpc\\_channel.py\", line 438, in result\n    raise self\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\grpc\\_interceptor.py\", line 314, in continuation\n    response, call = self._thunk(new_method).with_call(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\grpc\\_channel.py\", line 1180, in with_call\n    return _end_unary_response_blocking(state, call, True, None)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\grpc\\_channel.py\", line 996, in _end_unary_response_blocking\n    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable\ngrpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed to connect to all addresses; last error: UNAVAILABLE: ipv4:127.0.0.1:6334: ConnectEx: Connection refused (No connection could be made because the target machine actively refused it.\r\n -- 10061)\"\n\tdebug_error_string = \"UNKNOWN:Error received from peer  {grpc_message:\"failed to connect to all addresses; last error: UNAVAILABLE: ipv4:127.0.0.1:6334: ConnectEx: Connection refused (No connection could be made because the target machine actively refused it.\\r\\n -- 10061)\", grpc_status:14}\"\n>\n"
+  },
+  {
+    "database": "pgvector",
+    "scale": 1000000,
+    "dimensions": 768,
+    "timestamp": "2025-12-14T14:28:51.771116",
+    "phase_config": {
+      "scale": 1000000,
+      "num_queries": 1000,
+      "trials": 3,
+      "qps_duration": 30,
+      "cold_start_trials": 5,
+      "crash_recovery_trials": 3
+    },
+    "status": "error",
+    "error": "connection to server at \"localhost\" (::1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\n",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 715, in run_full_benchmark\n    adapter.connect()\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\pgvector_adapter.py\", line 32, in connect\n    self.conn = psycopg2.connect(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\psycopg2\\__init__.py\", line 122, in connect\n    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)\npsycopg2.OperationalError: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\n\n"
+  },
+  {
+    "database": "chroma",
+    "scale": 1000000,
+    "dimensions": 768,
+    "timestamp": "2025-12-14T14:28:55.977144",
+    "phase_config": {
+      "scale": 1000000,
+      "num_queries": 1000,
+      "trials": 3,
+      "qps_duration": 30,
+      "cold_start_trials": 5,
+      "crash_recovery_trials": 3
+    },
+    "ingestion": {
+      "database": "chroma",
+      "total_vectors": 1000000,
+      "total_seconds": 597.2719646003097,
+      "vectors_per_second": 1674.2791546715123,
+      "batches": 200,
+      "batch_size": 5000,
+      "time_to_100m_estimate_hours": 16.59088790556416,
+      "memory_delta_mb": 7066.8046875,
+      "index_size_bytes": 0
+    },
+    "queries": {
+      "num_queries": 1000,
+      "latency": {
+        "mean": 3.7239420965779573,
+        "std": 1.8691275204566704,
+        "p50": 3.615100053139031,
+        "p95": 4.543235013261437,
+        "p99": 5.336641003377736,
+        "min": 2.7255001477897167,
+        "max": 60.59150001965463
+      },
+      "recall": {
+        "@1": {
+          "mean": 0.349,
+          "std": 0.4766539625346673,
+          "min": 0.0,
+          "max": 1.0
+        },
+        "@10": {
+          "mean": 0.1034,
+          "std": 0.09575197125908165,
+          "min": 0.0,
+          "max": 0.4
+        },
+        "@100": {
+          "mean": 0.05759,
+          "std": 0.02578161942159569,
+          "min": 0.0,
+          "max": 0.16
+        }
+      },
+      "qps_estimate": 268.5326393551957
+    },
+    "qps": {
+      "qps": 463.2646236702992,
+      "total_queries": 13898,
+      "duration_seconds": 30,
+      "warmup_included": true,
+      "latency": {
+        "mean": 2.1486931433995005,
+        "std": 0.6008377365566147,
+        "p50": 2.0905998535454273,
+        "p95": 2.771795133594423,
+        "p99": 3.1437630695290877
+      }
+    },
+    "concurrent_qps": {
+      "concurrent_qps": 1229.9396644470341,
+      "num_threads": 4,
+      "total_queries": 36908,
+      "duration_seconds": 30.007976055145264,
+      "latency": {
+        "mean": 3.2192245961760513,
+        "std": 0.926275118460922,
+        "p50": 3.161999979056418,
+        "p95": 4.151600098703057,
+        "p99": 4.6351999044418335
+      }
+    },
+    "filtered_search": {
+      "no_filter": {
+        "mean_ms": 2.188190994784236,
+        "std_ms": 0.26991993312230284
+      },
+      "filtered": {
+        "1%": {
+          "mean_ms": 457.0242019998841,
+          "overhead_percent": 20785.93742910218,
+          "success_rate": 1.0
+        },
+        "10%": {
+          "mean_ms": 462.96507199062034,
+          "overhead_percent": 21057.43429591577,
+          "success_rate": 1.0
+        },
+        "50%": {
+          "mean_ms": 1700.7068549958058,
+          "overhead_percent": 77622.04798619519,
+          "success_rate": 1.0
+        }
+      }
+    },
+    "resilience": {
+      "cold_start": {
+        "error": "[WinError 2] The system cannot find the file specified"
+      },
+      "crash_recovery": {
+        "error": "[WinError 2] The system cannot find the file specified"
+      }
+    },
+    "operational_complexity": {
+      "error": "Docker CLI not found in PATH",
+      "note": "Runtime measurement failed - container may not be running"
+    },
+    "status": "success"
+  },
+  {
+    "database": "weaviate",
+    "scale": 1000000,
+    "dimensions": 768,
+    "timestamp": "2025-12-14T14:44:55.966226",
+    "phase_config": {
+      "scale": 1000000,
+      "num_queries": 1000,
+      "trials": 3,
+      "qps_duration": 30,
+      "cold_start_trials": 5,
+      "crash_recovery_trials": 3
+    },
+    "status": "error",
+    "error": "Connection to Weaviate failed. Details: Error: [WinError 10061] No connection could be made because the target machine actively refused it. \nIs Weaviate running and reachable at http://localhost:8080?",
+    "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_transports\\default.py\", line 101, in map_httpcore_exceptions\n    yield\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_transports\\default.py\", line 250, in handle_request\n    resp = self._pool.handle_request(req)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 256, in handle_request\n    raise exc from None\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpcore\\_sync\\connection_pool.py\", line 236, in handle_request\n    response = connection.handle_request(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpcore\\_sync\\connection.py\", line 101, in handle_request\n    raise exc\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpcore\\_sync\\connection.py\", line 78, in handle_request\n    stream = self._connect(request)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpcore\\_sync\\connection.py\", line 124, in _connect\n    stream = self._network_backend.connect_tcp(**kwargs)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpcore\\_backends\\sync.py\", line 207, in connect_tcp\n    with map_exceptions(exc_map):\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\contextlib.py\", line 153, in __exit__\n    self.gen.throw(typ, value, traceback)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpcore\\_exceptions.py\", line 14, in map_exceptions\n    raise to_exc(exc) from exc\nhttpcore.ConnectError: [WinError 10061] No connection could be made because the target machine actively refused it\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\v4.py\", line 409, in _open_connections_rest\n    response = client.get(oidc_url)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_client.py\", line 1053, in get\n    return self.request(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_client.py\", line 825, in request\n    return self.send(request, auth=auth, follow_redirects=follow_redirects)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_client.py\", line 914, in send\n    response = self._send_handling_auth(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_client.py\", line 942, in _send_handling_auth\n    response = self._send_handling_redirects(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_client.py\", line 979, in _send_handling_redirects\n    response = self._send_single_request(request)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_client.py\", line 1014, in _send_single_request\n    response = transport.handle_request(request)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_transports\\default.py\", line 249, in handle_request\n    with map_httpcore_exceptions():\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\contextlib.py\", line 153, in __exit__\n    self.gen.throw(typ, value, traceback)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\httpx\\_transports\\default.py\", line 118, in map_httpcore_exceptions\n    raise mapped_exc(message) from exc\nhttpx.ConnectError: [WinError 10061] No connection could be made because the target machine actively refused it\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 715, in run_full_benchmark\n    adapter.connect()\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\weaviate_adapter.py\", line 49, in connect\n    self.client = weaviate.connect_to_local(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\helpers.py\", line 193, in connect_to_local\n    return __connect(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\helpers.py\", line 371, in __connect\n    raise e\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\helpers.py\", line 367, in __connect\n    client.connect()\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\client_executor.py\", line 149, in connect\n    return executor.execute(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\executor.py\", line 99, in execute\n    return cast(T, exception_callback(e))\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\executor.py\", line 38, in raise_exception\n    raise e\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\executor.py\", line 80, in execute\n    call = method(*args, **kwargs)\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\v4.py\", line 886, in connect\n    self._open_connections_rest(self._auth, \"sync\")\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\weaviate\\connect\\v4.py\", line 411, in _open_connections_rest\n    raise WeaviateConnectionError(\nweaviate.exceptions.WeaviateConnectionError: Connection to Weaviate failed. Details: Error: [WinError 10061] No connection could be made because the target machine actively refused it. \nIs Weaviate running and reachable at http://localhost:8080?\n"
+  }
+]

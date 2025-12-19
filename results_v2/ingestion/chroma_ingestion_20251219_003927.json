@@ -1,0 +1,8 @@
+{
+  "database": "chroma",
+  "collection": "bench_v2_chroma",
+  "total_vectors": 9990000,
+  "total_time_s": 41877.300308942795,
+  "ingestion_rate": 238.55405974837063,
+  "timestamp": "2025-12-19T00:39:26.689428"
+}

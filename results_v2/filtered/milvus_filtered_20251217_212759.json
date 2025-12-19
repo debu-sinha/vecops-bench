@@ -1,0 +1,31 @@
+{
+  "database": "milvus",
+  "collection": "bench_v2_milvus",
+  "num_queries": 1000,
+  "corpus_size": 9990000,
+  "timestamp": "2025-12-17T21:25:58.817959",
+  "unfiltered": {
+    "latency_mean_ms": 97.83125197759364,
+    "latency_p50_ms": 91.46901700296439,
+    "latency_p95_ms": 124.36542791110695,
+    "latency_p99_ms": 190.6803359364858
+  },
+  "filtered": {
+    "50.0%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.5
+    },
+    "10.0%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.1
+    },
+    "1.0%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.01
+    },
+    "0.1%": {
+      "error": "Filtered search not supported or failed",
+      "selectivity": 0.001
+    }
+  }
+}

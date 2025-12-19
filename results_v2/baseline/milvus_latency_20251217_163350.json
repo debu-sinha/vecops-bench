@@ -1,0 +1,17 @@
+{
+  "database": "milvus",
+  "collection": "bench_v2_milvus",
+  "num_vectors": 9990000,
+  "timestamp": "2025-12-17T16:33:50.339978",
+  "latency": {
+    "num_queries": 1000,
+    "latency_mean_ms": 15.586687717353925,
+    "latency_p50_ms": 15.083404505276121,
+    "latency_p95_ms": 19.190982247528154,
+    "latency_p99_ms": 20.49159282032633
+  },
+  "qps_single": {
+    "qps": 53.36666666666667,
+    "duration_s": 30
+  }
+}

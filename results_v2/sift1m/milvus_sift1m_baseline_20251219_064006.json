@@ -1,0 +1,28 @@
+{
+  "database": "milvus",
+  "dataset": "SIFT1M",
+  "dimensions": 128,
+  "corpus_size": 1000000,
+  "query_size": 10000,
+  "hnsw_m": 16,
+  "hnsw_ef_construction": 128,
+  "hnsw_ef_search": 100,
+  "timestamp": "2025-12-19T06:34:36.671653",
+  "ingestion": {
+    "total_vectors": 1000000,
+    "total_time_s": 310.64508533477783,
+    "ingestion_rate": 3219.1077445256024,
+    "batch_size": 10000
+  },
+  "latency": {
+    "num_queries": 1000,
+    "top_k": 10,
+    "ef_search": 100,
+    "latency_mean_ms": 8.264178457146045,
+    "latency_p50_ms": 7.474777492461726,
+    "latency_p95_ms": 12.725731439422816,
+    "latency_p99_ms": 18.605257638846517,
+    "latency_std_ms": 4.0281026531515005,
+    "qps_single_thread": 121.0041633521719
+  }
+}

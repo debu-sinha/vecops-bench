@@ -18,15 +18,25 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Data files (too large for git)
+# Large data files
 data/
 *.npz
 *.pkl
 *.h5
+*.memmap
+*.npy
+*.fvecs
+*.ivecs
+*.bvecs
 
-# Results (will be stored separately)
-results/
-analysis/
+# Backup directories (too large for git)
+results_v2_backup/
+results_v2_backup_*/
+results_v2_vm1/
+results_v2_vm2/
+
+# Keep results_v2/ but exclude large files
+# Results JSON files are small and should be committed
 
 # OS
 .DS_Store
@@ -46,5 +56,31 @@ dist/
 *.key
 credentials.json
 .env.local
+
+# Docker volumes
+docker_data/
+milvus_data/
+qdrant_storage/
+chroma_data/
+weaviate_data/
+pgvector_data/
+
+# Temporary test files
+TEST_*.md
 TESTING_PLAN.md
-paper/
+TEST_STATE_*.md
+
+# Monitor server (development only)
+monitor/
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.out
+*.toc
+*.lof
+*.lot

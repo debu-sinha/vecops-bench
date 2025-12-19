@@ -1,0 +1,55 @@
+{
+  "database": "qdrant",
+  "collection": "bench_v2_qdrant",
+  "baseline_p99_ms": 23.08022160868858,
+  "restart_time": "2025-12-18T00:14:07.395177",
+  "probes": [
+    {
+      "elapsed_s": 1.472881555557251,
+      "error": "<_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed ",
+      "status": "error"
+    },
+    {
+      "elapsed_s": 6.525736093521118,
+      "error": "<_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed ",
+      "status": "error"
+    },
+    {
+      "elapsed_s": 11.58058762550354,
+      "error": "<_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed ",
+      "status": "error"
+    },
+    {
+      "elapsed_s": 16.634816884994507,
+      "error": "<_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNAVAILABLE\n\tdetails = \"failed ",
+      "status": "error"
+    },
+    {
+      "elapsed_s": 21.688711881637573,
+      "p99_ms": 12.185477528255435,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 26.79564929008484,
+      "p99_ms": 6.3855187251465395,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 31.893630266189575,
+      "p99_ms": 6.21934364142362,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 36.9910192489624,
+      "p99_ms": 6.117655899724923,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 42.09029245376587,
+      "p99_ms": 6.015063741360791,
+      "status": "ok"
+    }
+  ],
+  "ttq_seconds": 31.893630266189575,
+  "timestamp": "2025-12-18T00:14:48.110151"
+}

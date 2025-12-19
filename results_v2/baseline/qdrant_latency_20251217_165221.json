@@ -1,0 +1,17 @@
+{
+  "database": "qdrant",
+  "collection": "bench_v2_qdrant",
+  "num_vectors": 9990000,
+  "timestamp": "2025-12-17T16:52:21.965962",
+  "latency": {
+    "num_queries": 1000,
+    "latency_mean_ms": 25.497503615217283,
+    "latency_p50_ms": 15.757273504277691,
+    "latency_p95_ms": 86.91833524790125,
+    "latency_p99_ms": 181.783996236627
+  },
+  "qps_single": {
+    "qps": 221.96666666666667,
+    "duration_s": 30
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "database": "weaviate",
+  "collection": "bench_v2_weaviate",
+  "baseline_p99_ms": 23.5614738622098,
+  "restart_time": "2025-12-18T00:12:28.110105",
+  "probes": [
+    {
+      "elapsed_s": 5.095912933349609,
+      "error": "Connection to Weaviate failed. Details: Error: [Errno 104] Connection reset by peer. \nIs Weaviate ru",
+      "status": "error"
+    },
+    {
+      "elapsed_s": 10.118712425231934,
+      "p99_ms": 13343.852757802526,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 64.57602262496948,
+      "p99_ms": 10.34109625936253,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 69.74269890785217,
+      "p99_ms": 10.412441500811838,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 74.90402364730835,
+      "p99_ms": 12.231558801431675,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 80.0792920589447,
+      "p99_ms": 10.84972962649772,
+      "status": "ok"
+    },
+    {
+      "elapsed_s": 85.25753545761108,
+      "p99_ms": 9.57312546117464,
+      "status": "ok"
+    }
+  ],
+  "ttq_seconds": 74.90402364730835,
+  "timestamp": "2025-12-18T00:13:48.429338"
+}

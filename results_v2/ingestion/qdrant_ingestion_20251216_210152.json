@@ -1,0 +1,8 @@
+{
+  "database": "qdrant",
+  "collection": "bench_v2_qdrant",
+  "total_vectors": 9990000,
+  "total_time_s": 5141.575907468796,
+  "ingestion_rate": 1942.9840538750482,
+  "timestamp": "2025-12-16T21:01:52.068860"
+}

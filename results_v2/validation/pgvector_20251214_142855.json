@@ -1,0 +1,17 @@
+{
+  "database": "pgvector",
+  "scale": 1000000,
+  "dimensions": 768,
+  "timestamp": "2025-12-14T14:28:51.771116",
+  "phase_config": {
+    "scale": 1000000,
+    "num_queries": 1000,
+    "trials": 3,
+    "qps_duration": 30,
+    "cold_start_trials": 5,
+    "crash_recovery_trials": 3
+  },
+  "status": "error",
+  "error": "connection to server at \"localhost\" (::1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\n",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\scripts\\run_benchmark_v2.py\", line 715, in run_full_benchmark\n    adapter.connect()\n  File \"C:\\Users\\dsinh\\research\\vectordb-bench\\src\\databases\\pgvector_adapter.py\", line 32, in connect\n    self.conn = psycopg2.connect(\n  File \"C:\\Users\\dsinh\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages\\psycopg2\\__init__.py\", line 122, in connect\n    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)\npsycopg2.OperationalError: connection to server at \"localhost\" (::1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\nconnection to server at \"localhost\" (127.0.0.1), port 5432 failed: Connection refused (0x0000274D/10061)\n\tIs the server running on that host and accepting TCP/IP connections?\n\n"
+}

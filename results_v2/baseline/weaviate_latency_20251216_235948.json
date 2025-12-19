@@ -1,0 +1,26 @@
+{
+  "database": "weaviate",
+  "collection": "bench_v2_weaviate",
+  "num_vectors": 9990000,
+  "timestamp": "2025-12-16T23:57:22.600370",
+  "status": "success",
+  "latency": {
+    "num_queries": 1000,
+    "latency_mean_ms": 68.74784728823579,
+    "latency_p50_ms": 37.57896249589976,
+    "latency_p95_ms": 253.8413040587329,
+    "latency_p99_ms": 525.1812047968268,
+    "latency_std_ms": 94.0701088661475
+  },
+  "qps_single": {
+    "duration_s": 30.005730152130127,
+    "total_queries": 2749,
+    "qps": 91.61583424440836
+  },
+  "qps_concurrent": {
+    "threads": 4,
+    "duration_s": 30.009526252746582,
+    "total_queries": 11245,
+    "qps": 374.7143458811122
+  }
+}

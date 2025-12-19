@@ -1,0 +1,28 @@
+{
+  "database": "chroma",
+  "dataset": "SIFT1M",
+  "dimensions": 128,
+  "corpus_size": 1000000,
+  "query_size": 10000,
+  "hnsw_m": 16,
+  "hnsw_ef_construction": 128,
+  "hnsw_ef_search": 100,
+  "timestamp": "2025-12-19T07:34:29.920559",
+  "ingestion": {
+    "total_vectors": 1000000,
+    "total_time_s": 835.7489151954651,
+    "ingestion_rate": 1196.5316159173474,
+    "batch_size": 10000
+  },
+  "latency": {
+    "num_queries": 1000,
+    "top_k": 10,
+    "ef_search": 100,
+    "latency_mean_ms": 2.151713007624494,
+    "latency_p50_ms": 2.1301905071595684,
+    "latency_p95_ms": 2.4281449790578336,
+    "latency_p99_ms": 2.5273456497234292,
+    "latency_std_ms": 0.143212213883429,
+    "qps_single_thread": 464.7459937531385
+  }
+}

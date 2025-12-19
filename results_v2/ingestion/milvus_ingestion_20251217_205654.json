@@ -1,0 +1,8 @@
+{
+  "database": "milvus",
+  "collection": "bench_v2_milvus",
+  "total_vectors": 9990000,
+  "total_time_s": 4429.305153369904,
+  "ingestion_rate": 2255.4327719776566,
+  "timestamp": "2025-12-17T20:56:53.916958"
+}
