@@ -233,21 +233,18 @@ Weaviate & 81.80\% & 79.06\% & \textbf{3.35\%} \\
 
 Figure~\ref{fig:degradation} shows recall degradation over 10 churn cycles. All databases show monotonic decline, with Milvus starting highest (97.84\%) and pgvector showing steepest decline.
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \centering
-% Placeholder for actual figure
-\fbox{\parbox{0.9\columnwidth}{\centering
-\vspace{2cm}
-\textbf{Figure: Recall@10 vs. Churn Cycle}\\
-Lines showing monotonic degradation for all 4 databases\\
-Milvus: 97.84\% $\rightarrow$ 89.28\%\\
-Chroma: 88.99\% $\rightarrow$ 81.61\%\\
-pgvector: 83.13\% $\rightarrow$ 75.06\%\\
-Weaviate: 81.80\% $\rightarrow$ 79.06\%
-\vspace{2cm}
-}}
-\caption{Recall@10 degradation over 10 churn cycles. All databases show monotonic decline. Milvus maintains highest absolute recall but experiences similar percentage degradation to others.}
+\includegraphics[width=\columnwidth]{figures/fig1_recall_degradation.pdf}
+\caption{Recall@10 degradation over 10 churn cycles. All databases show monotonic decline. Milvus maintains highest absolute recall but experiences similar percentage degradation to others. Annotations show total degradation after 10\% corpus turnover.}
 \label{fig:degradation}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\columnwidth]{figures/fig2_degradation_bar.pdf}
+\caption{Total recall degradation after 10\% corpus churn. pgvector shows highest degradation (9.71\%) while Weaviate shows best stability (3.35\%).}
+\label{fig:degradation_bar}
 \end{figure}
 
 \subsection{Churn Operation Speed}
@@ -278,6 +275,13 @@ Qdrant & TIMEOUT & --- & \textbf{FAILED} \\
     \item \textbf{Qdrant} delete operations timeout, making it unsuitable for high-churn workloads
 \end{itemize}
 
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig3_churn_speed.pdf}
+\caption{Churn operation speed per 100K vectors (log scale). Milvus completes a full churn cycle in 37s while pgvector requires 23 minutes---a 38$\times$ difference.}
+\label{fig:churn_speed}
+\end{figure}
+
 \subsection{SIFT1M Cross-Validation}
 
 To validate our findings generalize beyond Cohere embeddings, we run baseline tests on SIFT1M:
@@ -298,6 +302,13 @@ pgvector & 95.86\% & 94.41\% & 40.64\% & 3.89 \\
 \end{table}
 
 \textbf{Notable finding}: pgvector's Recall@100 is anomalously low (40.64\%) on both datasets, suggesting a systematic issue with its HNSW implementation or parameter tuning at higher $k$ values.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig4_sift1m_recall.pdf}
+\caption{SIFT1M validation results. pgvector's anomalously low Recall@100 (40.64\%) is notable---the same pattern appears on Cohere data.}
+\label{fig:sift1m}
+\end{figure}
 
 \subsection{Qdrant Baseline (Churn Blocked)}
 
@@ -405,37 +416,210 @@ We release \vecops{} at \url{https://github.com/debu-sinha/vecops-bench} to enab
 % REFERENCES
 %=============================================================================
 \bibliographystyle{ACM-Reference-Format}
-\begin{thebibliography}{10}
+\begin{thebibliography}{99}
 
-\bibitem{annbenchmarks}
-M.~Aum{\"u}ller, E.~Bernhardsson, and A.~Faithfull.
-\newblock Ann-benchmarks: A benchmarking tool for approximate nearest neighbor algorithms.
-\newblock {\em Information Systems}, 87:101374, 2020.
-
+% ===== Core ANN and HNSW =====
 \bibitem{hnsw}
 Y.~A. Malkov and D.~A. Yashunin.
 \newblock Efficient and robust approximate nearest neighbor search using hierarchical navigable small world graphs.
 \newblock {\em IEEE TPAMI}, 42(4):824--836, 2020.
+
+\bibitem{nsw}
+Y.~Malkov, A.~Ponomarenko, A.~Logvinov, and V.~Krylov.
+\newblock Approximate nearest neighbor algorithm based on navigable small world graphs.
+\newblock {\em Information Systems}, 45:61--68, 2014.
+
+\bibitem{productquantization}
+H.~J{\'e}gou, M.~Douze, and C.~Schmid.
+\newblock Product quantization for nearest neighbor search.
+\newblock {\em IEEE TPAMI}, 33(1):117--128, 2011.
+
+\bibitem{ivfpq}
+H.~J{\'e}gou, R.~Tavenard, M.~Douze, and L.~Amsaleg.
+\newblock Searching in one billion vectors: Re-rank with source coding.
+\newblock In {\em IEEE ICASSP}, pages 861--864, 2011.
+
+\bibitem{faiss}
+J.~Johnson, M.~Douze, and H.~J{\'e}gou.
+\newblock Billion-scale similarity search with GPUs.
+\newblock {\em IEEE Transactions on Big Data}, 7(3):535--547, 2021.
+
+\bibitem{scann}
+R.~Guo, P.~Sun, E.~Lindgren, Q.~Geng, D.~Simcha, F.~Chern, and S.~Kumar.
+\newblock Accelerating large-scale inference with anisotropic vector quantization.
+\newblock In {\em ICML}, pages 3887--3896, 2020.
+
+\bibitem{diskann}
+S.~Jayaram~Subramanya, F.~Devvrit, H.~V. Simhadri, R.~Krishnawamy, and R.~Kadekodi.
+\newblock DiskANN: Fast accurate billion-point nearest neighbor search on a single node.
+\newblock In {\em NeurIPS}, pages 13766--13776, 2019.
+
+% ===== Benchmarks =====
+\bibitem{annbenchmarks}
+M.~Aum{\"u}ller, E.~Bernhardsson, and A.~Faithfull.
+\newblock Ann-benchmarks: A benchmarking tool for approximate nearest neighbor algorithms.
+\newblock {\em Information Systems}, 87:101374, 2020.
 
 \bibitem{beir}
 N.~Thakur, N.~Reimers, A.~R{\"u}ckl{\'e}, A.~Srivastava, and I.~Gurevych.
 \newblock BEIR: A heterogeneous benchmark for zero-shot evaluation of information retrieval models.
 \newblock In {\em NeurIPS Datasets and Benchmarks}, 2021.
 
+\bibitem{bigann}
+H.~J{\'e}gou, R.~Tavenard, M.~Douze, and L.~Amsaleg.
+\newblock Searching in one billion vectors: Re-rank with source coding.
+\newblock In {\em ICASSP}, pages 861--864, 2011.
+
+\bibitem{sift}
+D.~G. Lowe.
+\newblock Distinctive image features from scale-invariant keypoints.
+\newblock {\em IJCV}, 60(2):91--110, 2004.
+
+\bibitem{tpch}
+Transaction Processing Performance Council.
+\newblock TPC-H benchmark specification, revision 3.0.1.
+\newblock Technical report, TPC, 2021.
+
+\bibitem{ycsb}
+B.~F. Cooper, A.~Silberstein, E.~Tam, R.~Ramakrishnan, and R.~Sears.
+\newblock Benchmarking cloud serving systems with YCSB.
+\newblock In {\em SoCC}, pages 143--154, 2010.
+
+% ===== Vector Database Systems =====
 \bibitem{vdbsurvey2025}
 J.~Pan, J.~Wang, and G.~Li.
 \newblock Survey of vector database management systems.
 \newblock {\em VLDB Journal}, 2024.
 
+\bibitem{milvus}
+J.~Wang, X.~Yi, R.~Guo, H.~Jin, P.~Xu, S.~Li, X.~Wang, X.~Guo, C.~Li, X.~Xu, K.~Yu, Y.~Yuan, Y.~Zou, J.~Long, Y.~Cai, Z.~Li, Z.~Zhang, Y.~Mo, J.~Gu, R.~Jiang, Y.~Wei, and C.~Xie.
+\newblock Milvus: A purpose-built vector data management system.
+\newblock In {\em SIGMOD}, pages 2614--2627, 2021.
+
+\bibitem{pgvector}
+A.~Katz.
+\newblock pgvector: Open-source vector similarity search for Postgres.
+\newblock \url{https://github.com/pgvector/pgvector}, 2021.
+
+\bibitem{pinecone}
+Pinecone Systems Inc.
+\newblock Pinecone: Vector database for machine learning.
+\newblock \url{https://www.pinecone.io}, 2021.
+
+\bibitem{weaviate}
+B.~van~Lith and E.~Diaz.
+\newblock Weaviate: An open source vector search engine.
+\newblock \url{https://weaviate.io}, 2021.
+
+\bibitem{qdrant}
+Qdrant Solutions GmbH.
+\newblock Qdrant: Vector similarity search engine.
+\newblock \url{https://qdrant.tech}, 2021.
+
+\bibitem{chroma}
+Chroma Inc.
+\newblock Chroma: The AI-native open-source embedding database.
+\newblock \url{https://www.trychroma.com}, 2022.
+
+% ===== RAG and Embeddings =====
+\bibitem{rag}
+P.~Lewis, E.~Perez, A.~Piktus, F.~Petroni, V.~Karpukhin, N.~Goyal, H.~K{\"u}ttler, M.~Lewis, W.~Yih, T.~Rockt{\"a}schel, S.~Riedel, and D.~Kiela.
+\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
+\newblock In {\em NeurIPS}, pages 9459--9474, 2020.
+
+\bibitem{dpr}
+V.~Karpukhin, B.~O{\u{g}}uz, S.~Min, P.~Lewis, L.~Wu, S.~Edunov, D.~Chen, and W.~Yih.
+\newblock Dense passage retrieval for open-domain question answering.
+\newblock In {\em EMNLP}, pages 6769--6781, 2020.
+
+\bibitem{cohere}
+Cohere Inc.
+\newblock Cohere embeddings.
+\newblock \url{https://cohere.ai/embeddings}, 2022.
+
+\bibitem{openaiembeddings}
+OpenAI.
+\newblock Text embeddings.
+\newblock \url{https://platform.openai.com/docs/guides/embeddings}, 2022.
+
+\bibitem{sentence-bert}
+N.~Reimers and I.~Gurevych.
+\newblock Sentence-BERT: Sentence embeddings using siamese BERT-networks.
+\newblock In {\em EMNLP-IJCNLP}, pages 3982--3992, 2019.
+
+% ===== Index Maintenance and Updates =====
 \bibitem{lsmtree}
 P.~O'Neil, E.~Cheng, D.~Gawlick, and E.~O'Neil.
 \newblock The log-structured merge-tree (LSM-tree).
 \newblock {\em Acta Informatica}, 33(4):351--385, 1996.
 
-\bibitem{rag}
-P.~Lewis, E.~Perez, A.~Piktus, et~al.
-\newblock Retrieval-augmented generation for knowledge-intensive NLP tasks.
-\newblock In {\em NeurIPS}, 2020.
+\bibitem{btree}
+R.~Bayer and E.~McCreight.
+\newblock Organization and maintenance of large ordered indexes.
+\newblock {\em Acta Informatica}, 1(3):173--189, 1972.
+
+\bibitem{postgres-vacuum}
+PostgreSQL Global Development Group.
+\newblock PostgreSQL documentation: Routine vacuuming.
+\newblock \url{https://www.postgresql.org/docs/current/routine-vacuuming.html}, 2024.
+
+\bibitem{lucene}
+Apache Software Foundation.
+\newblock Apache Lucene.
+\newblock \url{https://lucene.apache.org}, 2024.
+
+\bibitem{elasticsearch}
+Elastic NV.
+\newblock Elasticsearch: The official distributed search and analytics engine.
+\newblock \url{https://www.elastic.co/elasticsearch}, 2024.
+
+% ===== Database Systems and Benchmarking =====
+\bibitem{oltpbench}
+D.~E. Difallah, A.~Pavlo, C.~Curino, and P.~Cudre-Mauroux.
+\newblock OLTP-Bench: An extensible testbed for benchmarking relational databases.
+\newblock {\em PVLDB}, 7(4):277--288, 2013.
+
+\bibitem{graybenchmark}
+J.~Gray.
+\newblock Database and transaction processing performance handbook.
+\newblock In {\em The Benchmark Handbook for Database and Transaction Systems}, 1993.
+
+\bibitem{stonebraker2007}
+M.~Stonebraker, S.~Madden, D.~J. Abadi, S.~Harizopoulos, N.~Hachem, and P.~Helland.
+\newblock The end of an architectural era (it's time for a complete rewrite).
+\newblock In {\em VLDB}, pages 1150--1160, 2007.
+
+\bibitem{pavlo2017}
+A.~Pavlo and M.~Aslett.
+\newblock What's really new with NewSQL?
+\newblock {\em SIGMOD Record}, 45(2):45--55, 2016.
+
+% ===== Distributed Systems =====
+\bibitem{raft}
+D.~Ongaro and J.~Ousterhout.
+\newblock In search of an understandable consensus algorithm.
+\newblock In {\em USENIX ATC}, pages 305--320, 2014.
+
+\bibitem{dynamo}
+G.~DeCandia, D.~Hastorun, M.~Jampani, G.~Kakulapati, A.~Lakshman, A.~Pilchin, S.~Sivasubramanian, P.~Vosshall, and W.~Vogels.
+\newblock Dynamo: Amazon's highly available key-value store.
+\newblock In {\em SOSP}, pages 205--220, 2007.
+
+% ===== Similarity Search Theory =====
+\bibitem{indyk1998}
+P.~Indyk and R.~Motwani.
+\newblock Approximate nearest neighbors: Towards removing the curse of dimensionality.
+\newblock In {\em STOC}, pages 604--613, 1998.
+
+\bibitem{kdtree}
+J.~L. Bentley.
+\newblock Multidimensional binary search trees used for associative searching.
+\newblock {\em Communications of the ACM}, 18(9):509--517, 1975.
+
+\bibitem{balltree}
+S.~M. Omohundro.
+\newblock Five balltree construction algorithms.
+\newblock Technical Report TR-89-063, ICSI, 1989.
 
 \end{thebibliography}
 

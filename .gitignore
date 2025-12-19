@@ -84,3 +84,19 @@ monitor/
 *.toc
 *.lof
 *.lot
+*.cut
+paper/*.pdf
+
+# Old results (superseded by results_v2/)
+results/
+
+# Local/test scripts
+scripts/run_benchmark_local.sh
+scripts/run_baseline_only.sh
+scripts/run_master_tests.sh
+scripts/run_churn_simple.py
+scripts/test_small_sample.py
+
+# Development docs
+RESULTS_VALIDATION.md
+paper/RESEARCH_PROPOSAL.md
